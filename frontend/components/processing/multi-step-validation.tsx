@@ -29,6 +29,13 @@ import {
     DialogDescription,
     DialogFooter
 } from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import type { ParsingResult, ExtractedParty } from "@/lib/types/parsing"
 import { formatFieldValue } from "@/lib/llm-parser"
@@ -44,6 +51,17 @@ interface MultiStepValidationProps {
     onValidate: (createEntities: boolean) => void
     loading?: boolean
 }
+
+const PROPERTY_TYPES = [
+    { label: "Appartement", value: "apartment" },
+    { label: "Maison", value: "house" },
+    { label: "Studio", value: "studio" },
+    { label: "Commercial", value: "commercial" },
+    { label: "Parking", value: "parking" },
+    { label: "Stockage", value: "storage" },
+    { label: "Terrain", value: "land" },
+    { label: "Autre", value: "other" },
+]
 
 type Step = "property" | "landlords" | "tenants" | "clauses"
 
@@ -81,6 +99,16 @@ export function MultiStepValidation({
         if (currentStep === "clauses") setCurrentStep("tenants")
         else if (currentStep === "tenants") setCurrentStep("landlords")
         else if (currentStep === "landlords") setCurrentStep("property")
+    }
+
+    const handleNumericChange = (fieldName: string, value: string) => {
+        // Enforce numeric only + parseFloat
+        const cleanValue = value.replace(/[^-0-9.]/g, '')
+        if (cleanValue === '') {
+            onFieldChange(fieldName, null)
+        } else {
+            onFieldChange(fieldName, parseFloat(cleanValue))
+        }
     }
 
     const landlords = result.lease_data?.parties.filter(p => p.type === "landlord") || []
@@ -150,51 +178,84 @@ export function MultiStepValidation({
                                         Informations du bien et contrat
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <InputGroup label="Adresse du bien" icon={MapPin}>
+                                        <div className="md:col-span-2">
+                                            <InputGroup label="Adresse du bien" icon={MapPin}>
+                                                <Input
+                                                    value={result.lease_data?.property_address || ""}
+                                                    onChange={(e) => onFieldChange("property_address", e.target.value)}
+                                                    placeholder="N°, rue, avenue..."
+                                                    className="bg-white"
+                                                />
+                                            </InputGroup>
+                                        </div>
+                                        <InputGroup label="Code Postal" icon={MapPin}>
                                             <Input
-                                                value={result.lease_data?.property_address || ""}
-                                                onChange={(e) => onFieldChange("property_address", e.target.value)}
+                                                value={result.lease_data?.property_zip || ""}
+                                                onChange={(e) => onFieldChange("property_zip", e.target.value)}
+                                                placeholder="75000"
+                                                className="bg-white"
+                                            />
+                                        </InputGroup>
+                                        <InputGroup label="Ville" icon={MapPin}>
+                                            <Input
+                                                value={result.lease_data?.property_city || ""}
+                                                onChange={(e) => onFieldChange("property_city", e.target.value)}
+                                                placeholder="Paris"
                                                 className="bg-white"
                                             />
                                         </InputGroup>
                                         <InputGroup label="Loyer mensuel (HC)" icon={Euro}>
                                             <Input
-                                                type="number"
-                                                value={result.lease_data?.monthly_rent || ""}
-                                                onChange={(e) => onFieldChange("monthly_rent", parseFloat(e.target.value))}
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={result.lease_data?.monthly_rent ?? ""}
+                                                onChange={(e) => handleNumericChange("monthly_rent", e.target.value)}
                                                 className="bg-white"
                                             />
                                         </InputGroup>
                                         <InputGroup label="Effectif Charges" icon={Euro}>
                                             <Input
-                                                type="number"
-                                                value={result.lease_data?.charges || ""}
-                                                onChange={(e) => onFieldChange("charges", parseFloat(e.target.value))}
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={result.lease_data?.charges ?? ""}
+                                                onChange={(e) => handleNumericChange("charges", e.target.value)}
                                                 className="bg-white"
                                             />
                                         </InputGroup>
                                         <InputGroup label="Dépôt de garantie" icon={Euro}>
                                             <Input
-                                                type="number"
-                                                value={result.lease_data?.deposit || ""}
-                                                onChange={(e) => onFieldChange("deposit", parseFloat(e.target.value))}
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={result.lease_data?.deposit ?? ""}
+                                                onChange={(e) => handleNumericChange("deposit", e.target.value)}
                                                 className="bg-white"
                                             />
                                         </InputGroup>
                                         <InputGroup label="Surface (m²)" icon={Maximize2}>
                                             <Input
-                                                type="number"
-                                                value={result.lease_data?.surface_area || ""}
-                                                onChange={(e) => onFieldChange("surface_area", parseFloat(e.target.value))}
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={result.lease_data?.surface_area ?? ""}
+                                                onChange={(e) => handleNumericChange("surface_area", e.target.value)}
                                                 className="bg-white"
                                             />
                                         </InputGroup>
                                         <InputGroup label="Type de bien" icon={Building}>
-                                            <Input
-                                                value={result.lease_data?.property_type || ""}
-                                                onChange={(e) => onFieldChange("property_type", e.target.value)}
-                                                className="bg-white"
-                                            />
+                                            <Select
+                                                value={result.lease_data?.property_type || "apartment"}
+                                                onValueChange={(val) => onFieldChange("property_type", val)}
+                                            >
+                                                <SelectTrigger className="bg-white">
+                                                    <SelectValue placeholder="Choisir un type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {PROPERTY_TYPES.map((type) => (
+                                                        <SelectItem key={type.value} value={type.value}>
+                                                            {type.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </InputGroup>
                                         <InputGroup label="Date d'effet" icon={Calendar}>
                                             <Input

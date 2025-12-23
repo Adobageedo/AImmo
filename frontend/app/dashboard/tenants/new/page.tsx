@@ -31,17 +31,10 @@ const tenantFormSections: EntityFormSection[] = [
                 ],
             },
             {
-                key: "first_name",
-                label: "Prénom",
+                key: "name",
+                label: "Nom Complet",
                 type: "text",
-                placeholder: "Jean",
-                required: true,
-            },
-            {
-                key: "last_name",
-                label: "Nom",
-                type: "text",
-                placeholder: "Dupont",
+                placeholder: "Jean Dupont",
                 required: true,
             },
             {
@@ -75,23 +68,17 @@ const tenantFormSections: EntityFormSection[] = [
         title: "Coordonnées",
         fields: [
             {
-                key: "contact.email",
+                key: "email",
                 label: "Email",
                 type: "email",
                 placeholder: "jean.dupont@email.com",
                 required: true,
             },
             {
-                key: "contact.phone",
+                key: "phone",
                 label: "Téléphone",
                 type: "tel",
                 placeholder: "06 12 34 56 78",
-            },
-            {
-                key: "contact.phone_secondary",
-                label: "Téléphone secondaire",
-                type: "tel",
-                placeholder: "01 23 45 67 89",
             },
         ],
     },
@@ -101,28 +88,10 @@ const tenantFormSections: EntityFormSection[] = [
         description: "Adresse du locataire (différente du bien loué)",
         fields: [
             {
-                key: "address.street",
-                label: "Rue",
+                key: "address",
+                label: "Adresse complète",
                 type: "text",
-                placeholder: "123 rue de la Paix",
-            },
-            {
-                key: "address.postal_code",
-                label: "Code postal",
-                type: "text",
-                placeholder: "75000",
-            },
-            {
-                key: "address.city",
-                label: "Ville",
-                type: "text",
-                placeholder: "Paris",
-            },
-            {
-                key: "address.country",
-                label: "Pays",
-                type: "text",
-                placeholder: "France",
+                placeholder: "123 rue de la Paix, 75000 Paris",
             },
         ],
     },
@@ -197,27 +166,15 @@ export default function NewTenantPage() {
             throw new Error("Aucune organisation sélectionnée")
         }
 
-        // Check if address is provided
-        const hasAddress = values["address.street"] || values["address.city"]
-
         // Transform flat form values to nested structure
         const tenantData: TenantCreateRequest = {
-            first_name: values.first_name as string,
-            last_name: values.last_name as string,
+            name: values.name as string,
             company_name: values.company_name as string | undefined,
             tenant_type: (values.tenant_type || "individual") as TenantType,
-            status: "prospect" as TenantStatus, // New tenants start as prospects
-            contact: {
-                email: values["contact.email"] as string,
-                phone: values["contact.phone"] as string | undefined,
-                phone_secondary: values["contact.phone_secondary"] as string | undefined,
-            },
-            address: hasAddress ? {
-                street: values["address.street"] as string,
-                postal_code: values["address.postal_code"] as string,
-                city: values["address.city"] as string,
-                country: (values["address.country"] as string) || "France",
-            } : undefined,
+            status: "prospect" as TenantStatus,
+            email: values.email as string,
+            phone: values.phone as string | undefined,
+            address: values.address as string | undefined,
             date_of_birth: values.date_of_birth as string | undefined,
             place_of_birth: values.place_of_birth as string | undefined,
             nationality: values.nationality as string | undefined,

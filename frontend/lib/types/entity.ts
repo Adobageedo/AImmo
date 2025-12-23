@@ -124,18 +124,16 @@ export interface TenantContact {
 
 export interface Tenant {
     id: string
-    first_name: string
-    last_name: string
-    company_name?: string
+    name: string
     tenant_type: TenantType
     status: TenantStatus
-    contact: TenantContact
-    address?: PropertyAddress
+    email?: string
+    phone?: string
+    company_name?: string
+    address?: string
     date_of_birth?: string
     place_of_birth?: string
     nationality?: string
-    id_document_type?: string
-    id_document_number?: string
     profession?: string
     employer?: string
     monthly_income?: number
@@ -153,13 +151,13 @@ export interface Tenant {
 }
 
 export interface TenantCreateRequest {
-    first_name: string
-    last_name: string
+    name: string
     company_name?: string
     tenant_type: TenantType
     status?: TenantStatus
-    contact: TenantContact
-    address?: PropertyAddress
+    email: string
+    phone?: string
+    address?: string
     date_of_birth?: string
     place_of_birth?: string
     nationality?: string
@@ -173,10 +171,7 @@ export interface TenantCreateRequest {
 }
 
 export interface TenantUpdateRequest extends Partial<TenantCreateRequest> {
-    id?: never
-    organization_id?: never
-    created_at?: never
-    updated_at?: never
+    id?: string
 }
 
 // ============================================

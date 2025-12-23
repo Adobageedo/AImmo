@@ -82,22 +82,19 @@ class TenantService extends EntityService<Tenant, TenantCreateRequest, TenantUpd
      * Get tenant full name
      */
     getFullName(tenant: Tenant): string {
-        if (tenant.tenant_type === "company" && tenant.company_name) {
-            return tenant.company_name
-        }
-        return `${tenant.first_name} ${tenant.last_name}`
+        return tenant.name
     }
 
     /**
      * Get tenant initials for avatar
      */
     getInitials(tenant: Tenant): string {
-        if (tenant.tenant_type === "company" && tenant.company_name) {
-            return tenant.company_name.substring(0, 2).toUpperCase()
+        if (!tenant.name) return "T"
+        const parts = tenant.name.split(" ")
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[1][0]).toUpperCase()
         }
-        const first = tenant.first_name?.[0] || ""
-        const last = tenant.last_name?.[0] || ""
-        return (first + last).toUpperCase()
+        return tenant.name.substring(0, 2).toUpperCase()
     }
 
     /**
@@ -129,8 +126,8 @@ class TenantService extends EntityService<Tenant, TenantCreateRequest, TenantUpd
      */
     formatContact(tenant: Tenant): string {
         const parts = [
-            tenant.contact.email,
-            tenant.contact.phone,
+            tenant.email,
+            tenant.phone,
         ].filter(Boolean)
         return parts.join(" • ")
     }
@@ -140,10 +137,9 @@ class TenantService extends EntityService<Tenant, TenantCreateRequest, TenantUpd
      */
     hasCompleteProfile(tenant: Tenant): boolean {
         const requiredFields = [
-            tenant.first_name,
-            tenant.last_name,
-            tenant.contact?.email,
-            tenant.contact?.phone,
+            tenant.name,
+            tenant.email,
+            tenant.phone,
         ]
         return requiredFields.every(Boolean)
     }

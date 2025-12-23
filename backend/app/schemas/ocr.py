@@ -28,6 +28,8 @@ class ParsedParty(BaseModel):
 class ParsedLease(BaseModel):
     parties: List[ParsedParty] = []
     property_address: Optional[str] = "Adresse non trouvée"
+    property_zip: Optional[str] = None
+    property_city: Optional[str] = None
     property_type: Optional[str] = None
     surface_area: Optional[float] = None
     start_date: Optional[date] = None

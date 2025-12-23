@@ -63,6 +63,8 @@ export interface ExtractedParty {
 export interface ExtractedLeaseData {
     parties: ExtractedParty[]
     property_address: string
+    property_zip?: string
+    property_city?: string
     property_type?: string
     surface_area?: number
     start_date?: string

@@ -43,6 +43,8 @@ export interface ParsedParty {
 export interface ParsedLease {
   parties: ParsedParty[]
   property_address: string
+  property_city?: string
+  property_zip?: string
   property_type?: string
   surface_area?: number
   start_date?: string

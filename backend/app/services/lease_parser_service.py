@@ -50,7 +50,9 @@ FORMAT JSON ATTENDU:
             "phone": "0123456789"
         }}
     ],
-    "property_address": "Adresse complète du bien loué",
+    "property_address": "Adresse complète du bien loué (sans ville ni CP)",
+    "property_zip": "75001",
+    "property_city": "Paris",
     "property_type": "appartement/maison/studio/autre",
     "surface_area": 50.5,
     "start_date": "2024-01-01",

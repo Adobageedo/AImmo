@@ -110,8 +110,7 @@ export default function TenantDetailPage() {
 
     // Build personal info items
     const buildPersonalInfo = (t: Tenant) => [
-        { label: "Prénom", value: t.first_name },
-        { label: "Nom", value: t.last_name },
+        { label: "Nom Complet", value: t.name },
         { label: "Type", value: getTypeLabel(t.tenant_type) },
         ...(t.company_name ? [{ label: "Société", value: t.company_name }] : []),
         { label: "Date de naissance", value: formatDate(t.date_of_birth), empty: !t.date_of_birth },
@@ -121,9 +120,8 @@ export default function TenantDetailPage() {
 
     // Build contact info items
     const buildContactInfo = (t: Tenant) => [
-        { label: "Email", value: t.contact.email, highlight: true },
-        { label: "Téléphone", value: t.contact.phone || undefined, empty: !t.contact.phone },
-        { label: "Téléphone secondaire", value: t.contact.phone_secondary || undefined, empty: !t.contact.phone_secondary },
+        { label: "Email", value: t.email, highlight: true },
+        { label: "Téléphone", value: t.phone || undefined, empty: !t.phone },
     ]
 
     // Build professional info items
@@ -146,17 +144,14 @@ export default function TenantDetailPage() {
     const buildAddressInfo = (t: Tenant) => {
         if (!t.address) return []
         return [
-            { label: "Rue", value: t.address.street },
-            { label: "Code postal", value: t.address.postal_code },
-            { label: "Ville", value: t.address.city },
-            { label: "Pays", value: t.address.country },
+            { label: "Adresse", value: t.address },
         ]
     }
 
     return (
         <EntityDetail
             title={tenant ? getFullName(tenant) : "Chargement..."}
-            subtitle={tenant?.contact.email}
+            subtitle={tenant?.email}
             avatar={tenant ? getInitials(tenant) : undefined}
             avatarColor={tenant ? getAvatarColor(tenant) : undefined}
             status={status || undefined}
@@ -168,7 +163,7 @@ export default function TenantDetailPage() {
                 ),
             ] : []}
             meta={tenant ? [
-                ...(tenant.contact.phone ? [{ icon: Phone, value: tenant.contact.phone }] : []),
+                ...(tenant.phone ? [{ icon: Phone, value: tenant.phone }] : []),
                 ...(tenant.profession ? [{ icon: Briefcase, value: tenant.profession }] : []),
             ] : []}
 
@@ -231,9 +226,9 @@ export default function TenantDetailPage() {
                     id: "contact",
                     title: "Coordonnées",
                     icon: Mail,
-                    action: tenant.contact.email ? {
+                    action: tenant.email ? {
                         label: "Envoyer un email",
-                        onClick: () => window.open(`mailto:${tenant.contact.email}`),
+                        onClick: () => window.open(`mailto:${tenant.email}`),
                     } : undefined,
                     content: (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -208,18 +208,12 @@ class ProcessingService:
 
             # 2. Créer la propriété
             if validated_data.property_address:
-                # Extraire ville et CP si possible (simplifié ici)
-                postal_code = "00000"
-                import re
-                cp_match = re.search(r'(\d{5})', validated_data.property_address)
-                if cp_match:
-                    postal_code = cp_match.group(1)
                 
                 property_data = {
-                    "name": validated_data.property_address.split(",")[0][:255],
+                    "name": validated_data.property_address[:255] if validated_data.property_address else "Sans nom",
                     "address": validated_data.property_address,
-                    "city": "À compléter",
-                    "postal_code": postal_code,
+                    "city": validated_data.property_city or "À compléter",
+                    "postal_code": validated_data.property_zip or "00000",
                     "country": "France",
                     "property_type": validated_data.property_type or "appartement",
                     "surface_area": validated_data.surface_area,

@@ -100,8 +100,8 @@ export default function TenantsPage() {
                     { label: getTypeLabel(t.tenant_type), variant: "secondary" as const }
                 ]}
                 getMeta={(t) => [
-                    ...(t.contact.email ? [{ icon: Mail, value: t.contact.email }] : []),
-                    ...(t.contact.phone ? [{ icon: Phone, value: t.contact.phone }] : []),
+                    ...(t.email ? [{ icon: Mail, value: t.email }] : []),
+                    ...(t.phone ? [{ icon: Phone, value: t.phone }] : []),
                     ...(t.current_property_id ? [{ icon: Building2, value: "Bail actif" }] : []),
                 ]}
                 getStats={(t) => [
@@ -142,8 +142,8 @@ export default function TenantsPage() {
                         key: "email",
                         label: "Envoyer un email",
                         icon: Mail,
-                        onClick: (t) => window.open(`mailto:${t.contact.email}`),
-                        condition: (t) => !!t.contact.email,
+                        onClick: (t) => window.open(`mailto:${t.email}`),
+                        condition: (t) => !!t.email,
                     },
                 ]}
 
