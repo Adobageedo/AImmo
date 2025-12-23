@@ -295,13 +295,10 @@ export function useParsing(options: UseParsingOptions = {}) {
     const convertToParsedLease = (data: ExtractedLeaseData): ParsedLease => {
         return {
             parties: data.parties.map(p => ({
-                type: p.type as "landlord" | "tenant", // Keep as general string if needed but ParsedLease usually expects strict enum
+                type: p.type as "landlord" | "tenant",
                 name: p.name,
                 address: p.address,
                 email: p.email,
-                phone: p.phone,
-                company_name: p.company_name,
-                siret: p.siret,
             })),
             property_address: data.property_address || "",
             property_city: data.property_city,

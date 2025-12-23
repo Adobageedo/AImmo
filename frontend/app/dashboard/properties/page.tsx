@@ -104,8 +104,7 @@ export default function PropertiesPage() {
                 // Item rendering
                 getTitle={(p) => p.name}
                 getSubtitle={(p) => {
-                    const address = p.address
-                    return address ? `${address.street}, ${address.postal_code} ${address.city}` : "Adresse non renseignée"
+                    return p.address ? `${p.address}, ${p.postal_code} ${p.city}` : "Adresse non renseignée"
                 }}
                 getIcon={getPropertyIcon}
                 getAvatarColor={getAvatarColor}
@@ -115,7 +114,7 @@ export default function PropertiesPage() {
                 ]}
                 getMeta={(p) => [
                     { icon: SquareStack, value: `${p.surface_m2} m²` },
-                    { icon: MapPin, value: p.address?.city || "—" },
+                    { icon: MapPin, value: p.city || "—" },
                     ...(p.rooms ? [{ icon: Building2, value: `${p.rooms} pièces` }] : []),
                 ]}
                 getStats={(p) => [

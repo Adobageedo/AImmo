@@ -315,27 +315,15 @@ function PartyCard({
                         placeholder="Nom"
                     />
                     <Input
-                        value={editData.company_name || ""}
-                        onChange={(e) => handleChange("company_name", e.target.value)}
-                        placeholder="Société (optionnel)"
-                    />
-                    <Input
                         value={editData.address || ""}
                         onChange={(e) => handleChange("address", e.target.value)}
                         placeholder="Adresse"
                     />
-                    <div className="flex gap-2">
-                        <Input
-                            value={editData.email || ""}
-                            onChange={(e) => handleChange("email", e.target.value)}
-                            placeholder="Email"
-                        />
-                        <Input
-                            value={editData.phone || ""}
-                            onChange={(e) => handleChange("phone", e.target.value)}
-                            placeholder="Téléphone"
-                        />
-                    </div>
+                    <Input
+                        value={editData.email || ""}
+                        onChange={(e) => handleChange("email", e.target.value)}
+                        placeholder="Email"
+                    />
                 </div>
             </div>
         )
@@ -360,18 +348,12 @@ function PartyCard({
             </div>
             <div className={styles["parsing-validation__party-name"]}>
                 {party.name}
-                {party.company_name && (
-                    <span className={styles["parsing-validation__party-company"]}>
-                        ({party.company_name})
-                    </span>
-                )}
             </div>
             {party.address && (
                 <p className={styles["parsing-validation__party-address"]}>{party.address}</p>
             )}
             <div className={styles["parsing-validation__party-contact"]}>
                 {party.email && <span>{party.email}</span>}
-                {party.phone && <span>{party.phone}</span>}
             </div>
         </div>
     )

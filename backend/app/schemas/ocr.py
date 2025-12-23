@@ -20,9 +20,6 @@ class ParsedParty(BaseModel):
     name: Optional[str] = "Inconnu"
     address: Optional[str] = None
     email: Optional[str] = None
-    phone: Optional[str] = None
-    company_name: Optional[str] = None
-    siret: Optional[str] = None
 
 
 class ParsedLease(BaseModel):

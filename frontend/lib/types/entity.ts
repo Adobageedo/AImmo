@@ -26,23 +26,16 @@ export enum PropertyStatus {
     SOLD = "sold",
 }
 
-export interface PropertyAddress {
-    street: string
-    city: string
-    postal_code: string
-    country: string
-    building?: string
-    floor?: number
-    door?: string
-}
-
 export interface Property {
     id: string
     name: string
     description?: string
     property_type: PropertyType
     status: PropertyStatus
-    address: PropertyAddress
+    address: string
+    city: string
+    postal_code: string
+    country: string
     surface_m2: number
     rooms?: number
     bedrooms?: number
@@ -75,7 +68,10 @@ export interface PropertyCreateRequest {
     description?: string
     property_type: PropertyType
     status?: PropertyStatus
-    address: PropertyAddress
+    address: string
+    city: string
+    postal_code: string
+    country: string
     surface_m2: number
     rooms?: number
     bedrooms?: number
@@ -116,30 +112,13 @@ export enum TenantStatus {
     PROSPECT = "prospect",
 }
 
-export interface TenantContact {
-    email: string
-    phone?: string
-    phone_secondary?: string
-}
-
 export interface Tenant {
     id: string
     name: string
     tenant_type: TenantType
     status: TenantStatus
     email?: string
-    phone?: string
-    company_name?: string
     address?: string
-    date_of_birth?: string
-    place_of_birth?: string
-    nationality?: string
-    profession?: string
-    employer?: string
-    monthly_income?: number
-    guarantor_name?: string
-    guarantor_contact?: string
-    notes?: string
     organization_id: string
     created_at: string
     updated_at: string
@@ -152,21 +131,10 @@ export interface Tenant {
 
 export interface TenantCreateRequest {
     name: string
-    company_name?: string
     tenant_type: TenantType
     status?: TenantStatus
-    email: string
-    phone?: string
+    email?: string
     address?: string
-    date_of_birth?: string
-    place_of_birth?: string
-    nationality?: string
-    profession?: string
-    employer?: string
-    monthly_income?: number
-    guarantor_name?: string
-    guarantor_contact?: string
-    notes?: string
     organization_id: string
 }
 

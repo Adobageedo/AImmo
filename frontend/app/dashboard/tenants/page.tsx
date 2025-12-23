@@ -15,6 +15,7 @@ import {
     Building2,
     AlertCircle,
     UserPlus,
+    MapPin,
 } from "lucide-react"
 import { EntityList } from "@/components/entity"
 import { useTenants } from "@/lib/hooks/use-tenants"
@@ -101,7 +102,7 @@ export default function TenantsPage() {
                 ]}
                 getMeta={(t) => [
                     ...(t.email ? [{ icon: Mail, value: t.email }] : []),
-                    ...(t.phone ? [{ icon: Phone, value: t.phone }] : []),
+                    ...(t.address ? [{ icon: MapPin, value: t.address }] : []),
                     ...(t.current_property_id ? [{ icon: Building2, value: "Bail actif" }] : []),
                 ]}
                 getStats={(t) => [

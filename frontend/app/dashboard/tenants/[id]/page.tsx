@@ -112,33 +112,12 @@ export default function TenantDetailPage() {
     const buildPersonalInfo = (t: Tenant) => [
         { label: "Nom Complet", value: t.name },
         { label: "Type", value: getTypeLabel(t.tenant_type) },
-        ...(t.company_name ? [{ label: "Société", value: t.company_name }] : []),
-        { label: "Date de naissance", value: formatDate(t.date_of_birth), empty: !t.date_of_birth },
-        { label: "Lieu de naissance", value: t.place_of_birth || undefined, empty: !t.place_of_birth },
-        { label: "Nationalité", value: t.nationality || undefined, empty: !t.nationality },
     ]
 
     // Build contact info items
     const buildContactInfo = (t: Tenant) => [
         { label: "Email", value: t.email, highlight: true },
-        { label: "Téléphone", value: t.phone || undefined, empty: !t.phone },
     ]
-
-    // Build professional info items
-    const buildProfessionalInfo = (t: Tenant) => [
-        { label: "Profession", value: t.profession || undefined, empty: !t.profession },
-        { label: "Employeur", value: t.employer || undefined, empty: !t.employer },
-        { label: "Revenus mensuels", value: formatCurrency(t.monthly_income), empty: !t.monthly_income, highlight: !!t.monthly_income },
-    ]
-
-    // Build guarantor info
-    const buildGuarantorInfo = (t: Tenant) => {
-        if (!t.guarantor_name && !t.guarantor_contact) return []
-        return [
-            { label: "Nom du garant", value: t.guarantor_name || undefined, empty: !t.guarantor_name },
-            { label: "Contact du garant", value: t.guarantor_contact || undefined, empty: !t.guarantor_contact },
-        ]
-    }
 
     // Build address info
     const buildAddressInfo = (t: Tenant) => {
@@ -162,10 +141,7 @@ export default function TenantDetailPage() {
                     : [{ label: "Profil incomplet", variant: "warning" as const }]
                 ),
             ] : []}
-            meta={tenant ? [
-                ...(tenant.phone ? [{ icon: Phone, value: tenant.phone }] : []),
-                ...(tenant.profession ? [{ icon: Briefcase, value: tenant.profession }] : []),
-            ] : []}
+            meta={[]}
 
             backHref="/dashboard/tenants"
             backLabel="Locataires"
@@ -179,12 +155,6 @@ export default function TenantDetailPage() {
             updatedAt={tenant?.updated_at}
 
             stats={tenant ? [
-                ...(tenant.monthly_income ? [{
-                    label: "Revenus mensuels",
-                    value: formatCurrency(tenant.monthly_income),
-                    icon: Euro,
-                    variant: "highlight" as const,
-                }] : []),
                 ...(tenant.total_paid !== undefined ? [{
                     label: "Total payé",
                     value: formatCurrency(tenant.total_paid),
@@ -214,8 +184,8 @@ export default function TenantDetailPage() {
                             {buildPersonalInfo(tenant).map((item, idx) => (
                                 <div key={idx} className="flex flex-col">
                                     <span className="text-sm font-medium text-gray-500 mb-1">{item.label}</span>
-                                    <span className={`text-gray-900 ${item.empty ? "text-gray-400 italic" : ""}`}>
-                                        {item.empty ? "Non renseigné" : item.value}
+                                    <span className="text-gray-900">
+                                        {item.value || "Non renseigné"}
                                     </span>
                                 </div>
                             ))}
@@ -235,8 +205,8 @@ export default function TenantDetailPage() {
                             {buildContactInfo(tenant).map((item, idx) => (
                                 <div key={idx} className="flex flex-col">
                                     <span className="text-sm font-medium text-gray-500 mb-1">{item.label}</span>
-                                    <span className={`${item.highlight ? "font-semibold text-indigo-600" : "text-gray-900"} ${item.empty ? "text-gray-400 italic font-normal" : ""}`}>
-                                        {item.empty ? "Non renseigné" : item.value}
+                                    <span className={`${item.highlight ? "font-semibold text-indigo-600" : "text-gray-900"} ${!item.value ? "text-gray-400 italic font-normal" : ""}`}>
+                                        {item.value || "Non renseigné"}
                                     </span>
                                 </div>
                             ))}
@@ -255,48 +225,6 @@ export default function TenantDetailPage() {
                                     <span className="text-gray-900">{item.value}</span>
                                 </div>
                             ))}
-                        </div>
-                    ),
-                }] : []),
-                {
-                    id: "professional",
-                    title: "Situation professionnelle",
-                    icon: Briefcase,
-                    content: (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {buildProfessionalInfo(tenant).map((item, idx) => (
-                                <div key={idx} className="flex flex-col">
-                                    <span className="text-sm font-medium text-gray-500 mb-1">{item.label}</span>
-                                    <span className={`${item.highlight ? "font-semibold text-indigo-600" : "text-gray-900"} ${item.empty ? "text-gray-400 italic font-normal" : ""}`}>
-                                        {item.empty ? "Non renseigné" : item.value}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    ),
-                },
-                ...(buildGuarantorInfo(tenant).length > 0 ? [{
-                    id: "guarantor",
-                    title: "Garant",
-                    content: (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {buildGuarantorInfo(tenant).map((item, idx) => (
-                                <div key={idx} className="flex flex-col">
-                                    <span className="text-sm font-medium text-gray-500 mb-1">{item.label}</span>
-                                    <span className={`text-gray-900 ${item.empty ? "text-gray-400 italic" : ""}`}>
-                                        {item.empty ? "Non renseigné" : item.value}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    ),
-                }] : []),
-                ...(tenant.notes ? [{
-                    id: "notes",
-                    title: "Notes",
-                    content: (
-                        <div className="prose prose-sm max-w-none text-gray-600">
-                            {tenant.notes}
                         </div>
                     ),
                 }] : []),

@@ -127,7 +127,7 @@ class TenantService extends EntityService<Tenant, TenantCreateRequest, TenantUpd
     formatContact(tenant: Tenant): string {
         const parts = [
             tenant.email,
-            tenant.phone,
+            tenant.address,
         ].filter(Boolean)
         return parts.join(" • ")
     }
@@ -139,7 +139,7 @@ class TenantService extends EntityService<Tenant, TenantCreateRequest, TenantUpd
         const requiredFields = [
             tenant.name,
             tenant.email,
-            tenant.phone,
+            tenant.address,
         ]
         return requiredFields.every(Boolean)
     }

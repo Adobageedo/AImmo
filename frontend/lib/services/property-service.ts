@@ -108,20 +108,8 @@ class PropertyService extends EntityService<Property, PropertyCreateRequest, Pro
      * Format property address as string
      */
     formatAddress(property: Property): string {
-        const { address } = property
-        if (!address) return "Adresse non renseignée"
-
-        const parts = [
-            address.street,
-            address.building ? `Bât. ${address.building}` : null,
-            address.floor !== undefined ? `${address.floor}ème étage` : null,
-            address.door ? `Porte ${address.door}` : null,
-        ].filter(Boolean)
-
-        const line1 = parts.join(", ")
-        const line2 = `${address.postal_code} ${address.city}`
-
-        return `${line1}\n${line2}`
+        if (!property.address) return "Adresse non renseignée"
+        return `${property.address}\n${property.postal_code} ${property.city}`
     }
 
     /**

@@ -307,9 +307,7 @@ export default function LeaseDetailPage() {
                 },
                 {
                     id: "tenant",
-                    title: lease.tenant
-                        ? (lease.tenant.company_name || `${lease.tenant.first_name} ${lease.tenant.last_name}`)
-                        : "Locataire",
+                    title: lease.tenant?.name || "Locataire",
                     subtitle: "Voir le locataire",
                     icon: Users,
                     href: `/dashboard/tenants/${lease.tenant_id}`,

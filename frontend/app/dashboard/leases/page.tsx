@@ -99,9 +99,7 @@ export default function LeasesPage() {
         }
 
         if (lease.tenant) {
-            const tenantName = lease.tenant.company_name ||
-                `${lease.tenant.first_name} ${lease.tenant.last_name}`
-            meta.push({ icon: Users, value: tenantName })
+            meta.push({ icon: Users, value: lease.tenant.name })
         }
 
         return meta
@@ -125,8 +123,7 @@ export default function LeasesPage() {
                     const parts = []
                     if (l.property?.name) parts.push(l.property.name)
                     if (l.tenant) {
-                        const name = l.tenant.company_name || `${l.tenant.first_name} ${l.tenant.last_name}`
-                        parts.push(name)
+                        parts.push(l.tenant.name)
                     }
                     return parts.join(" • ") || "Bail en cours"
                 }}

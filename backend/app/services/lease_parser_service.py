@@ -35,19 +35,15 @@ FORMAT JSON ATTENDU:
     "parties": [
         {{
             "type": "landlord",
-            "name": "Nom du propriétaire/bailleur",
-            "company_name": "Nom de la société (ex: SCI XXX) ou null",
+            "name": "Nom du propriétaire/bailleur (ou raison sociale)",
             "address": "Adresse du bailleur",
-            "email": "email@example.com",
-            "phone": "0123456789",
-            "siret": "Numéro SIRET si disponible"
+            "email": "email@example.com"
         }},
         {{
             "type": "tenant",
             "name": "Nom du locataire",
             "address": "Adresse du locataire",
-            "email": "email@example.com",
-            "phone": "0123456789"
+            "email": "email@example.com"
         }}
     ],
     "property_address": "Adresse complète du bien loué (sans ville ni CP)",

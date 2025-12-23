@@ -234,7 +234,7 @@ Extrais les champs suivants:
 - charges: Montant des charges en euros
 - deposit: Montant du dépôt de garantie en euros
 - payment_day: Jour du mois pour le paiement
-- parties: Liste des parties (bailleur, locataire) avec nom, adresse, email, téléphone
+- parties: Liste des parties (bailleur, locataire) avec nom, adresse, email
 - special_clauses: Liste des clauses particulières
 
 Pour chaque champ, ajoute un champ {field}_confidence avec un score de 0 à 1.`,
@@ -261,9 +261,6 @@ export function parseParties(
         name: p.name || "",
         address: p.address,
         email: p.email,
-        phone: p.phone,
-        company_name: p.company_name,
-        siret: p.siret,
         confidence: p.confidence ?? 0.5,
     }))
 }

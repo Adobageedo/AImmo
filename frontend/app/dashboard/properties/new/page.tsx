@@ -68,51 +68,31 @@ const propertyFormSections: EntityFormSection[] = [
         title: "Adresse",
         fields: [
             {
-                key: "address.street",
+                key: "address",
                 label: "Rue",
                 type: "text",
                 placeholder: "123 rue de la Paix",
                 required: true,
             },
             {
-                key: "address.postal_code",
+                key: "postal_code",
                 label: "Code postal",
                 type: "text",
                 placeholder: "75000",
                 required: true,
             },
             {
-                key: "address.city",
+                key: "city",
                 label: "Ville",
                 type: "text",
                 placeholder: "Paris",
                 required: true,
             },
             {
-                key: "address.country",
+                key: "country",
                 label: "Pays",
                 type: "text",
                 placeholder: "France",
-            },
-            {
-                key: "address.building",
-                label: "Bâtiment",
-                type: "text",
-                placeholder: "A",
-            },
-            {
-                key: "address.floor",
-                label: "Étage",
-                type: "number",
-                placeholder: "3",
-                min: -5,
-                max: 100,
-            },
-            {
-                key: "address.door",
-                label: "Porte",
-                type: "text",
-                placeholder: "Gauche",
             },
         ],
     },
@@ -278,15 +258,10 @@ export default function NewPropertyPage() {
             description: values.description as string | undefined,
             property_type: (values.property_type || "other") as PropertyType,
             status: (values.status || "available") as PropertyStatus,
-            address: {
-                street: values["address.street"] as string,
-                postal_code: values["address.postal_code"] as string,
-                city: values["address.city"] as string,
-                country: (values["address.country"] as string) || "France",
-                building: values["address.building"] as string | undefined,
-                floor: values["address.floor"] as number | undefined,
-                door: values["address.door"] as string | undefined,
-            },
+            address: values.address as string,
+            postal_code: values.postal_code as string,
+            city: values.city as string,
+            country: (values.country as string) || "France",
             surface_m2: values.surface_m2 as number,
             rooms: values.rooms as number | undefined,
             bedrooms: values.bedrooms as number | undefined,
@@ -348,7 +323,7 @@ export default function NewPropertyPage() {
                 error={error}
                 initialValues={{
                     status: "available",
-                    "address.country": "France",
+                    country: "France",
                 }}
             />
         </div>

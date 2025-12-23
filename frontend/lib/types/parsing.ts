@@ -51,9 +51,6 @@ export interface ExtractedParty {
     name: string
     address?: string
     email?: string
-    phone?: string
-    company_name?: string
-    siret?: string
     confidence: number
 }
 

@@ -449,26 +449,6 @@ function PartyCard({ party, onUpdate, onRemove }: { party: ExtractedParty; onUpd
                                     className="h-9"
                                 />
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Téléphone</label>
-                                <Input
-                                    value={party.phone || ""}
-                                    onChange={(e) => onUpdate({ ...party, phone: e.target.value })}
-                                    placeholder="Numéro de téléphone"
-                                    className="h-9"
-                                />
-                            </div>
-                            {party.type === "landlord" && (
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Société / SCI</label>
-                                    <Input
-                                        value={party.company_name || ""}
-                                        onChange={(e) => onUpdate({ ...party, company_name: e.target.value })}
-                                        placeholder="Nom de la société"
-                                        className="h-9"
-                                    />
-                                </div>
-                            )}
                         </div>
                     </div>
                     <Button

@@ -107,16 +107,11 @@ export default function PropertyDetailPage() {
 
     // Build address items
     const buildAddressItems = (p: Property) => {
-        const addr = p.address
-        if (!addr) return []
         return [
-            { label: "Rue", value: addr.street },
-            { label: "Code postal", value: addr.postal_code },
-            { label: "Ville", value: addr.city },
-            { label: "Pays", value: addr.country },
-            { label: "Bâtiment", value: addr.building || undefined, empty: !addr.building },
-            { label: "Étage", value: addr.floor !== undefined ? `${addr.floor}` : undefined, empty: addr.floor === undefined },
-            { label: "Porte", value: addr.door || undefined, empty: !addr.door },
+            { label: "Rue", value: p.address },
+            { label: "Code postal", value: p.postal_code },
+            { label: "Ville", value: p.city },
+            { label: "Pays", value: p.country },
         ]
     }
 
@@ -149,7 +144,7 @@ export default function PropertyDetailPage() {
             badges={property ? [{ label: getTypeLabel(property.property_type), variant: "secondary" as const }] : []}
             meta={property ? [
                 { icon: SquareStack, value: `${property.surface_m2} m²` },
-                { icon: MapPin, value: property.address?.city || "—" },
+                { icon: MapPin, value: property.city || "—" },
             ] : []}
 
             backHref="/dashboard/properties"
@@ -214,8 +209,8 @@ export default function PropertyDetailPage() {
                             {buildAddressItems(property).map((item, idx) => (
                                 <div key={idx} className="flex flex-col">
                                     <span className="text-sm font-medium text-gray-500 mb-1">{item.label}</span>
-                                    <span className={`text-gray-900 ${item.empty ? "text-gray-400 italic" : ""}`}>
-                                        {item.empty ? "Non renseigné" : item.value}
+                                    <span className={`text-gray-900 ${!item.value ? "text-gray-400 italic" : ""}`}>
+                                        {item.value || "Non renseigné"}
                                     </span>
                                 </div>
                             ))}

@@ -34,32 +34,8 @@ const tenantFormSections: EntityFormSection[] = [
                 key: "name",
                 label: "Nom Complet",
                 type: "text",
-                placeholder: "Jean Dupont",
+                placeholder: "Jean Dupont ou SARL Exemple",
                 required: true,
-            },
-            {
-                key: "company_name",
-                label: "Nom de la société",
-                type: "text",
-                placeholder: "SARL Exemple",
-                showIf: (values) => values.tenant_type === "company" || values.tenant_type === "association",
-            },
-            {
-                key: "date_of_birth",
-                label: "Date de naissance",
-                type: "date",
-            },
-            {
-                key: "place_of_birth",
-                label: "Lieu de naissance",
-                type: "text",
-                placeholder: "Paris",
-            },
-            {
-                key: "nationality",
-                label: "Nationalité",
-                type: "text",
-                placeholder: "Française",
             },
         ],
     },
@@ -72,13 +48,6 @@ const tenantFormSections: EntityFormSection[] = [
                 label: "Email",
                 type: "email",
                 placeholder: "jean.dupont@email.com",
-                required: true,
-            },
-            {
-                key: "phone",
-                label: "Téléphone",
-                type: "tel",
-                placeholder: "06 12 34 56 78",
             },
         ],
     },
@@ -95,64 +64,6 @@ const tenantFormSections: EntityFormSection[] = [
             },
         ],
     },
-    {
-        id: "professional",
-        title: "Situation professionnelle",
-        fields: [
-            {
-                key: "profession",
-                label: "Profession",
-                type: "text",
-                placeholder: "Ingénieur",
-            },
-            {
-                key: "employer",
-                label: "Employeur",
-                type: "text",
-                placeholder: "Entreprise SAS",
-            },
-            {
-                key: "monthly_income",
-                label: "Revenus mensuels nets",
-                type: "currency",
-                placeholder: "2500",
-                hint: "Utilisé pour vérifier le ratio loyer/revenus",
-            },
-        ],
-    },
-    {
-        id: "guarantor",
-        title: "Garant",
-        description: "Informations sur le garant éventuel",
-        fields: [
-            {
-                key: "guarantor_name",
-                label: "Nom du garant",
-                type: "text",
-                placeholder: "Marie Dupont",
-            },
-            {
-                key: "guarantor_contact",
-                label: "Contact du garant",
-                type: "text",
-                placeholder: "06 00 00 00 00 ou email",
-            },
-        ],
-    },
-    {
-        id: "notes",
-        title: "Notes",
-        fields: [
-            {
-                key: "notes",
-                label: "Notes privées",
-                type: "textarea",
-                placeholder: "Informations complémentaires sur le locataire...",
-                fullWidth: true,
-                rows: 4,
-            },
-        ],
-    },
 ]
 
 export default function NewTenantPage() {
@@ -166,24 +77,13 @@ export default function NewTenantPage() {
             throw new Error("Aucune organisation sélectionnée")
         }
 
-        // Transform flat form values to nested structure
+        // Transform flat form values
         const tenantData: TenantCreateRequest = {
             name: values.name as string,
-            company_name: values.company_name as string | undefined,
             tenant_type: (values.tenant_type || "individual") as TenantType,
             status: "prospect" as TenantStatus,
-            email: values.email as string,
-            phone: values.phone as string | undefined,
+            email: values.email as string | undefined,
             address: values.address as string | undefined,
-            date_of_birth: values.date_of_birth as string | undefined,
-            place_of_birth: values.place_of_birth as string | undefined,
-            nationality: values.nationality as string | undefined,
-            profession: values.profession as string | undefined,
-            employer: values.employer as string | undefined,
-            monthly_income: values.monthly_income as number | undefined,
-            guarantor_name: values.guarantor_name as string | undefined,
-            guarantor_contact: values.guarantor_contact as string | undefined,
-            notes: values.notes as string | undefined,
             organization_id: currentOrganizationId,
         }
 
@@ -231,7 +131,6 @@ export default function NewTenantPage() {
                 error={error}
                 initialValues={{
                     tenant_type: "individual",
-                    "address.country": "France",
                 }}
             />
         </div>

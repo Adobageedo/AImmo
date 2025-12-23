@@ -53,7 +53,7 @@ function NewLeasePageContent() {
                     type: "select",
                     required: true,
                     options: properties.map(p => ({
-                        label: `${p.name} - ${p.address?.city || ""}`,
+                        label: `${p.name} - ${p.city || ""}`,
                         value: p.id,
                     })),
                     hint: "Sélectionnez le bien à louer",

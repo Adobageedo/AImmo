@@ -232,9 +232,9 @@ class ProcessingService:
             for idx, tenant in enumerate(tenant_parties):
                 tenant_data = {
                     "name": tenant.name or "Locataire inconnu",
-                    "tenant_type": "individual", # Mapping schema requirement
+                    "tenant_type": "individual",
                     "email": tenant.email,
-                    "phone": tenant.phone,
+                    "address": tenant.address,
                     "organization_id": str(organization_id),
                 }
                 

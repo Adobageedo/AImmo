@@ -69,3 +69,5 @@ CREATE OR REPLACE TRIGGER update_owners_updated_at
     BEFORE UPDATE ON public.owners
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+ALTER TABLE tenants ADD COLUMN address TEXT;
