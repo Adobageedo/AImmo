@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "test": "echo 'Frontend tests not yet configured. Use npm run dev to start the dev server.'",
+    "test:types": "tsc --noEmit",
+    "test:lint": "next lint"
+  }
+}
