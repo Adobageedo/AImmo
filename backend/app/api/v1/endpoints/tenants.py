@@ -96,6 +96,16 @@ async def get_tenant(
             detail="User does not access to this tenant"
         )
     
+    # Get current active lease
+    lease_response = supabase.table("leases").select(
+        "id, property_id"
+    ).eq("tenant_id", str(tenant_id)).order("start_date", desc=True).limit(1).execute()
+    
+    if lease_response.data and len(lease_response.data) > 0:
+        lease = lease_response.data[0]
+        tenant["current_lease_id"] = lease["id"]
+        tenant["current_property_id"] = lease["property_id"]
+    
     return tenant
 
 
@@ -178,3 +188,19 @@ async def delete_tenant(
          pass
     
     return None
+
+
+@router.get("/{tenant_id}/leases", response_model=List[dict])
+async def get_tenant_leases(
+    tenant_id: UUID,
+    user_id: str = Depends(get_current_user_id),
+):
+    """Get all leases for this tenant with property and owner info"""
+    supabase = get_supabase()
+    
+    # Get leases with property and owner information
+    response = supabase.table("leases").select(
+        "*, properties!inner(id, name, address, city, owner_id)"
+    ).eq("tenant_id", str(tenant_id)).execute()
+    
+    return response.data or []

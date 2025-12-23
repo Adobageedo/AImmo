@@ -109,6 +109,7 @@ export interface EntityDetailProps {
     documents?: Array<{
         id: string
         title: string
+        name?: string
         type?: string
         date?: string
         href?: string
@@ -502,8 +503,8 @@ export function EntityDetail({
                             <RelatedList
                                 items={documents.map(doc => ({
                                     id: doc.id,
-                                    title: doc.title,
-                                    subtitle: [doc.type, doc.date].filter(Boolean).join(" • "),
+                                    title: doc.type || 'Document',
+                                    subtitle: [doc.title].filter(Boolean).join(" • "),
                                     icon: FileText,
                                     href: doc.href,
                                     onClick: doc.onClick,

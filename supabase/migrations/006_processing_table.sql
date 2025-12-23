@@ -14,10 +14,11 @@ CREATE TABLE IF NOT EXISTS document_processing (
 );
 
 -- Index pour recherche rapide
-CREATE INDEX idx_processing_document ON document_processing(document_id);
-CREATE INDEX idx_processing_status ON document_processing(status);
+CREATE INDEX IF NOT EXISTS idx_processing_document ON document_processing(document_id);
+CREATE INDEX IF NOT EXISTS idx_processing_status ON document_processing(status);
 
 -- Trigger updated_at
+DROP TRIGGER IF EXISTS update_processing_updated_at ON document_processing;
 CREATE TRIGGER update_processing_updated_at
     BEFORE UPDATE ON document_processing
     FOR EACH ROW
@@ -27,6 +28,7 @@ CREATE TRIGGER update_processing_updated_at
 ALTER TABLE document_processing ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Les utilisateurs peuvent voir les traitements de leurs organisations
+DROP POLICY IF EXISTS "Users can view their organization processings" ON document_processing;
 CREATE POLICY "Users can view their organization processings"
 ON document_processing FOR SELECT
 TO authenticated
@@ -39,6 +41,7 @@ USING (
 );
 
 -- Policy: Les utilisateurs peuvent créer des traitements pour leurs organisations
+DROP POLICY IF EXISTS "Users can create processings for their organizations" ON document_processing;
 CREATE POLICY "Users can create processings for their organizations"
 ON document_processing FOR INSERT
 TO authenticated
@@ -51,6 +54,7 @@ WITH CHECK (
 );
 
 -- Policy: Les utilisateurs peuvent mettre à jour les traitements de leurs organisations
+DROP POLICY IF EXISTS "Users can update their organization processings" ON document_processing;
 CREATE POLICY "Users can update their organization processings"
 ON document_processing FOR UPDATE
 TO authenticated

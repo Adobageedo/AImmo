@@ -180,7 +180,7 @@ export function useDashboard(
                 0
             )
             const totalEstimatedValue = properties.reduce(
-                (sum, p) => sum + parseFloat(p.estimated_value || 0),
+                (sum, p) => sum + parseFloat(p.current_value || p.purchase_price || p.estimated_value || 0),
                 0
             )
 
@@ -242,7 +242,11 @@ export function useDashboard(
                 country: p.country,
                 propertyType: p.property_type,
                 surfaceArea: p.surface_area ? parseFloat(p.surface_area) : undefined,
-                estimatedValue: p.estimated_value
+                estimatedValue: p.current_value 
+                    ? parseFloat(p.current_value)
+                    : p.purchase_price 
+                    ? parseFloat(p.purchase_price)
+                    : p.estimated_value
                     ? parseFloat(p.estimated_value)
                     : undefined,
                 occupancyStatus: occupiedPropertyIds.has(p.id) ? "occupied" : "vacant",

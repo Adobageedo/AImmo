@@ -36,7 +36,7 @@ export interface Property {
     city: string
     postal_code: string
     country: string
-    surface_m2: number
+    surface_area: number
     rooms?: number
     bedrooms?: number
     bathrooms?: number
@@ -53,12 +53,15 @@ export interface Property {
     current_value?: number
     monthly_charges?: number
     property_tax?: number
+    source_document_id?: string
+    owner_id?: string
     organization_id: string
     created_at: string
     updated_at: string
     // Computed fields
     current_lease_id?: string
     current_tenant_id?: string
+    current_tenant_name?: string
     monthly_rent?: number
     yield_percentage?: number
 }
@@ -72,7 +75,7 @@ export interface PropertyCreateRequest {
     city: string
     postal_code: string
     country: string
-    surface_m2: number
+    surface_area: number
     rooms?: number
     bedrooms?: number
     bathrooms?: number
@@ -90,6 +93,48 @@ export interface PropertyCreateRequest {
 }
 
 export interface PropertyUpdateRequest extends Partial<PropertyCreateRequest> {
+    id?: never
+    organization_id?: never
+    created_at?: never
+    updated_at?: never
+}
+
+// ============================================
+// OWNER TYPES
+// ============================================
+
+export enum OwnerType {
+    INDIVIDUAL = "individual",
+    COMPANY = "company",
+}
+
+export interface Owner {
+    id: string
+    name: string
+    company_name?: string
+    email?: string
+    phone?: string
+    address?: string
+    siret?: string
+    organization_id: string
+    created_at: string
+    updated_at: string
+    // Computed fields
+    properties_count?: number
+    total_property_value?: number
+}
+
+export interface OwnerCreateRequest {
+    name: string
+    company_name?: string
+    email?: string
+    phone?: string
+    address?: string
+    siret?: string
+    organization_id: string
+}
+
+export interface OwnerUpdateRequest extends Partial<OwnerCreateRequest> {
     id?: never
     organization_id?: never
     created_at?: never
@@ -119,6 +164,7 @@ export interface Tenant {
     status: TenantStatus
     email?: string
     address?: string
+    source_document_id?: string
     organization_id: string
     created_at: string
     updated_at: string
@@ -264,7 +310,7 @@ export interface LeaseUpdateRequest extends Partial<LeaseCreateRequest> {
 // GENERIC ENTITY TYPES
 // ============================================
 
-export type EntityType = "property" | "tenant" | "lease" | "document" | "payment"
+export type EntityType = "property" | "owner" | "tenant" | "lease" | "document" | "payment"
 
 export interface BaseEntity {
     id: string
@@ -321,7 +367,7 @@ export interface EntityAction<T> {
 
 export interface PropertyStats {
     total_properties: number
-    total_surface_m2: number
+    total_surface_area: number
     properties_by_status: Record<PropertyStatus, number>
     properties_by_type: Record<PropertyType, number>
     average_rent: number

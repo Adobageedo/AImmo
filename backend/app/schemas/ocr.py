@@ -29,6 +29,14 @@ class ParsedLease(BaseModel):
     property_city: Optional[str] = None
     property_type: Optional[str] = None
     surface_area: Optional[float] = None
+    construction_year: Optional[int] = None
+    last_renovation_year: Optional[int] = None
+    energy_class: Optional[str] = None
+    ges_class: Optional[str] = None
+    purchase_price: Optional[float] = None
+    purchase_date: Optional[date] = None
+    current_value: Optional[float] = None
+    property_tax: Optional[float] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     monthly_rent: Optional[float] = None
@@ -73,5 +81,6 @@ class ValidationRequest(BaseModel):
 class EntityCreationResult(BaseModel):
     property_id: Optional[UUID] = None
     tenant_id: Optional[UUID] = None
+    owner_id: Optional[UUID] = None
     lease_id: Optional[UUID] = None
     errors: List[str] = []

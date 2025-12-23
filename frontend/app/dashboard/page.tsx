@@ -1,20 +1,48 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Building2, FileText, Users, TrendingUp, Clock, Calendar } from 'lucide-react'
 import { StatCard, ActionCard, PageHeader } from '@/components/ui'
 import { EmptyState } from '@/components/ui/empty-state'
 import Link from 'next/link'
+import { useAuthStore } from '@/lib/store/auth-store'
+import { useProperties } from '@/lib/hooks/use-properties'
+import { useTenants } from '@/lib/hooks/use-tenants'
 
-export const dynamic = 'force-dynamic'
+export default function DashboardPage() {
+  const router = useRouter()
+  const { user, organization } = useAuthStore()
+  const [stats, setStats] = useState({
+    totalProperties: 0,
+    totalDocuments: 0,
+    totalTenants: 0,
+    totalRevenue: 0,
+    revenueChange: 0,
+  })
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
+  // Fetch properties with lease data
+  const { items: properties, loading: propertiesLoading } = useProperties({ autoLoad: true })
+  
+  // Fetch tenants
+  const { items: tenants, loading: tenantsLoading } = useTenants({ autoLoad: true })
 
-  const { data: { session } } = await supabase.auth.getSession()
+  // Calculate stats from properties
+  useEffect(() => {
+    if (properties && properties.length > 0) {
+      const totalRevenue = properties.reduce((sum, prop) => {
+        return sum + (parseFloat(prop.monthly_rent as any) || 0)
+      }, 0)
 
-  if (!session) {
-    redirect('/auth/login')
-  }
+      setStats({
+        totalProperties: properties.length,
+        totalDocuments: 0, // TODO: fetch from documents API
+        totalTenants: tenants?.length || 0,
+        totalRevenue,
+        revenueChange: 0, // TODO: calculate from historical data
+      })
+    }
+  }, [properties, tenants])
 
   const today = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -22,6 +50,14 @@ export default async function DashboardPage() {
     month: 'long',
     day: 'numeric'
   })
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }
 
   return (
     <div className="space-y-8">
@@ -40,33 +76,35 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Propriétés"
-          value="0"
+          value={stats.totalProperties.toString()}
           description="Biens gérés"
           icon={Building2}
           href="/dashboard/properties"
-          trend={{ value: "+0% ce mois", positive: true }}
+          trend={{ value: `+${stats.totalProperties} ce mois`, positive: true }}
         />
         <StatCard
           title="Documents"
-          value="0"
+          value={stats.totalDocuments.toString()}
           description="Fichiers stockés"
           icon={FileText}
           href="/dashboard/documents"
         />
         <StatCard
           title="Locataires"
-          value="0"
+          value={stats.totalTenants.toString()}
           description="Baux actifs"
           icon={Users}
           href="/dashboard/tenants"
         />
         <StatCard
           title="Revenus"
-          value="€ 0"
+          value={formatCurrency(stats.totalRevenue)}
           description="Ce mois-ci"
           icon={TrendingUp}
-          href="/dashboard/finances"
-          trend={{ value: "+0% vs dernier mois", positive: true }}
+          trend={{ 
+            value: `${stats.revenueChange >= 0 ? '+' : ''}${stats.revenueChange}% vs dernier mois`, 
+            positive: stats.revenueChange >= 0 
+          }}
         />
       </div>
 

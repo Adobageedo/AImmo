@@ -113,9 +113,9 @@ export default function PropertiesPage() {
                     { label: getTypeLabel(p.property_type), variant: "secondary" as const }
                 ]}
                 getMeta={(p) => [
-                    { icon: SquareStack, value: `${p.surface_m2} m²` },
+                    { icon: SquareStack, value: `${p.surface_area} m²` },
                     { icon: MapPin, value: p.city || "—" },
-                    ...(p.rooms ? [{ icon: Building2, value: `${p.rooms} pièces` }] : []),
+                    ...(p.current_tenant_name ? [{ icon: Key, value: p.current_tenant_name }] : []),
                 ]}
                 getStats={(p) => [
                     {

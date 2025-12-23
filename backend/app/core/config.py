@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     DEFAULT_LLM_TEMPERATURE: float = 0.1
     DEFAULT_LLM_MAX_TOKENS: int = 4000
     
+    # Legifrance API Settings
+    LEGIFRANCE_CLIENT_ID: str = ""
+    LEGIFRANCE_CLIENT_SECRET: str = ""
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

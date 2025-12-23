@@ -21,10 +21,9 @@ export const DASHBOARD_NAV: NavItem[] = [
     { name: "Tableau de bord", href: "/dashboard", icon: Building2, exact: true },
     { name: "Portfolio", href: "/dashboard/portfolio", icon: LayoutDashboard },
     { name: "Propriétés", href: "/dashboard/properties", icon: Building2 },
+    { name: "Propriétaires", href: "/dashboard/owners", icon: Users },
     { name: "Documents", href: "/dashboard/documents", icon: FileText },
     { name: "Locataires", href: "/dashboard/tenants", icon: Users },
-    { name: "Finances", href: "/dashboard/finances", icon: TrendingUp },
-    { name: "Alertes", href: "/alerts", icon: Bell },
     { name: "Newsletter", href: "/newsletter", icon: Mail },
     { name: "Conversations", href: "/dashboard/conversations", icon: MessageSquare },
 ]

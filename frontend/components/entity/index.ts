@@ -18,3 +18,9 @@ export type {
 
 export { EntityForm } from "./EntityForm"
 export type { EntityFormProps, EntityFormField, EntityFormSection } from "./EntityForm"
+
+export { AddressInfoSection } from "./AddressInfoSection"
+export type { AddressInfoSectionProps, AddressField } from "./AddressInfoSection"
+
+export { DocumentsList } from "./DocumentsList"
+export type { DocumentsListProps } from "./DocumentsList"

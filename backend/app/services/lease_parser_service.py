@@ -51,6 +51,14 @@ FORMAT JSON ATTENDU:
     "property_city": "Paris",
     "property_type": "appartement/maison/studio/autre",
     "surface_area": 50.5,
+    "construction_year": 1990,
+    "last_renovation_year": 2020,
+    "energy_class": "C",
+    "ges_class": "B",
+    "purchase_price": 250000.00,
+    "purchase_date": "2020-01-15",
+    "current_value": 280000.00,
+    "property_tax": 1200.00,
     "start_date": "2024-01-01",
     "end_date": "2025-01-01",
     "monthly_rent": 1200.00,
@@ -108,6 +116,13 @@ JSON:"""
                 except Exception:
                     pass
             
+            purchase_date = None
+            if data.get("purchase_date"):
+                try:
+                    purchase_date = datetime.strptime(data["purchase_date"], "%Y-%m-%d").date()
+                except Exception:
+                    pass
+            
             # Calcul de confiance basé sur le nombre de champs remplis
             total_fields = 10
             filled_fields = sum([
@@ -127,8 +142,18 @@ JSON:"""
             return ParsedLease(
                 parties=parties,
                 property_address=data.get("property_address") or "Adresse non trouvée",
+                property_zip=data.get("property_zip"),
+                property_city=data.get("property_city"),
                 property_type=data.get("property_type"),
                 surface_area=data.get("surface_area"),
+                construction_year=data.get("construction_year"),
+                last_renovation_year=data.get("last_renovation_year"),
+                energy_class=data.get("energy_class"),
+                ges_class=data.get("ges_class"),
+                purchase_price=data.get("purchase_price"),
+                purchase_date=purchase_date,
+                current_value=data.get("current_value"),
+                property_tax=data.get("property_tax"),
                 start_date=start_date,
                 end_date=end_date,
                 monthly_rent=data.get("monthly_rent"),
@@ -143,42 +168,18 @@ JSON:"""
         except Exception as e:
             raise ValueError(f"Erreur lors du parsing LLM: {str(e)}")
     
-    def parse_lease_with_rules(self, text: str) -> ParsedLease:
-        """
-        Parsing basé sur des règles (fallback si pas d'API OpenAI)
-        Version simple avec regex
-        """
-        import re
-        
-        # Extraction basique avec regex
-        parties = []
-        property_address = ""
-        monthly_rent = None
-        
-        # Chercher "loyer" ou "rent"
-        rent_match = re.search(r'loyer.*?(\d+(?:[.,]\d+)?)\s*€?', text, re.IGNORECASE)
-        if rent_match:
-            monthly_rent = float(rent_match.group(1).replace(',', '.'))
-        
-        # Chercher une adresse
-        address_match = re.search(r'(\d+.*?(?:rue|avenue|boulevard|place).*?\d{5})', text, re.IGNORECASE)
-        if address_match:
-            property_address = address_match.group(1)
-        
-        return ParsedLease(
-            parties=parties,
-            property_address=property_address or "Adresse non trouvée",
-            monthly_rent=monthly_rent,
-            confidence=0.3,  # Faible confiance pour parsing par règles
-            raw_data={"method": "regex", "text_length": len(text)}
-        )
     
     async def parse_lease(self, text: str, use_llm: bool = True) -> ParsedLease:
-        """Parse un bail avec LLM ou règles"""
-        if use_llm and self.llm.api_key:
-            return await self.parse_lease_with_llm(text)
-        else:
-            return self.parse_lease_with_rules(text)
+        """Parse un bail avec LLM (requis)"""
+        if not self.llm.is_configured:
+            raise ValueError(
+                "OPENAI_API_KEY n'est pas configuré. "
+                "Le parsing de bail nécessite une clé API OpenAI valide. "
+                "Veuillez configurer OPENAI_API_KEY dans votre fichier .env"
+            )
+        
+        logger.info("DEBUG: Using LLM-based lease parser")
+        return await self.parse_lease_with_llm(text)
 
 
 lease_parser_service = LeaseParserService()

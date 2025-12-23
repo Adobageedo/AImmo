@@ -265,6 +265,110 @@ export function MultiStepValidation({
                                                 className="bg-white"
                                             />
                                         </InputGroup>
+                                        <InputGroup label="Date de fin" icon={Calendar}>
+                                            <Input
+                                                type="date"
+                                                value={result.lease_data?.end_date || ""}
+                                                onChange={(e) => onFieldChange("end_date", e.target.value)}
+                                                className="bg-white"
+                                            />
+                                        </InputGroup>
+                                        
+                                        {/* Informations supplémentaires du bien */}
+                                        <div className="md:col-span-2 mt-6 pt-6 border-t border-slate-200">
+                                            <h4 className="text-md font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                                                <Info className="h-4 w-4 text-indigo-500" />
+                                                Informations complémentaires
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <InputGroup label="Année de construction" icon={Building}>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        value={result.lease_data?.construction_year ?? ""}
+                                                        onChange={(e) => handleNumericChange("construction_year", e.target.value)}
+                                                        placeholder="1990"
+                                                        className="bg-white"
+                                                    />
+                                                </InputGroup>
+                                                <InputGroup label="Dernière rénovation" icon={Building}>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        value={result.lease_data?.last_renovation_year ?? ""}
+                                                        onChange={(e) => handleNumericChange("last_renovation_year", e.target.value)}
+                                                        placeholder="2020"
+                                                        className="bg-white"
+                                                    />
+                                                </InputGroup>
+                                                <InputGroup label="Classe énergie (DPE)" icon={Info}>
+                                                    <Input
+                                                        value={result.lease_data?.energy_class || ""}
+                                                        onChange={(e) => onFieldChange("energy_class", e.target.value.toUpperCase())}
+                                                        placeholder="A, B, C, D, E, F, G"
+                                                        maxLength={1}
+                                                        className="bg-white uppercase"
+                                                    />
+                                                </InputGroup>
+                                                <InputGroup label="Classe GES" icon={Info}>
+                                                    <Input
+                                                        value={result.lease_data?.ges_class || ""}
+                                                        onChange={(e) => onFieldChange("ges_class", e.target.value.toUpperCase())}
+                                                        placeholder="A, B, C, D, E, F, G"
+                                                        maxLength={1}
+                                                        className="bg-white uppercase"
+                                                    />
+                                                </InputGroup>
+                                            </div>
+                                        </div>
+
+                                        {/* Données financières */}
+                                        <div className="md:col-span-2 mt-6 pt-6 border-t border-slate-200">
+                                            <h4 className="text-md font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                                                <Euro className="h-4 w-4 text-indigo-500" />
+                                                Données financières
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <InputGroup label="Prix d'achat" icon={Euro}>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        value={result.lease_data?.purchase_price ?? ""}
+                                                        onChange={(e) => handleNumericChange("purchase_price", e.target.value)}
+                                                        placeholder="250000"
+                                                        className="bg-white"
+                                                    />
+                                                </InputGroup>
+                                                <InputGroup label="Date d'achat" icon={Calendar}>
+                                                    <Input
+                                                        type="date"
+                                                        value={result.lease_data?.purchase_date || ""}
+                                                        onChange={(e) => onFieldChange("purchase_date", e.target.value)}
+                                                        className="bg-white"
+                                                    />
+                                                </InputGroup>
+                                                <InputGroup label="Valeur actuelle" icon={Euro}>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        value={result.lease_data?.current_value ?? ""}
+                                                        onChange={(e) => handleNumericChange("current_value", e.target.value)}
+                                                        placeholder="280000"
+                                                        className="bg-white"
+                                                    />
+                                                </InputGroup>
+                                                <InputGroup label="Taxe foncière annuelle" icon={Euro}>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        value={result.lease_data?.property_tax ?? ""}
+                                                        onChange={(e) => handleNumericChange("property_tax", e.target.value)}
+                                                        placeholder="1200"
+                                                        className="bg-white"
+                                                    />
+                                                </InputGroup>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}

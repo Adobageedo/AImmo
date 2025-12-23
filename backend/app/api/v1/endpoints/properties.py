@@ -30,7 +30,29 @@ async def get_properties(
         "organization_id", str(organization_id)
     ).execute()
     
-    return response.data
+    properties = response.data or []
+    
+    # Add lease info to each property
+    for prop in properties:
+        lease_response = supabase.table("leases").select(
+            "id, tenant_id, monthly_rent"
+        ).eq("property_id", prop["id"]).order("start_date", desc=True).limit(1).execute()
+        
+        if lease_response.data and len(lease_response.data) > 0:
+            lease = lease_response.data[0]
+            prop["current_lease_id"] = lease["id"]
+            prop["current_tenant_id"] = lease.get("tenant_id")
+            prop["monthly_rent"] = lease.get("monthly_rent")
+            
+            # Get tenant name
+            if lease.get("tenant_id"):
+                tenant_response = supabase.table("tenants").select("name").eq(
+                    "id", lease["tenant_id"]
+                ).execute()
+                if tenant_response.data and len(tenant_response.data) > 0:
+                    prop["current_tenant_name"] = tenant_response.data[0].get("name")
+    
+    return properties
 
 
 @router.post("/", response_model=Property, status_code=status.HTTP_201_CREATED)
@@ -76,7 +98,20 @@ async def get_property(
             detail="Property not found"
         )
     
-    return response.data[0]
+    property_data = response.data[0]
+    
+    # Get current active lease
+    lease_response = supabase.table("leases").select(
+        "id, tenant_id, monthly_rent"
+    ).eq("property_id", str(property_id)).order("start_date", desc=True).limit(1).execute()
+    
+    if lease_response.data and len(lease_response.data) > 0:
+        lease = lease_response.data[0]
+        property_data["current_lease_id"] = lease["id"]
+        property_data["current_tenant_id"] = lease["tenant_id"]
+        property_data["monthly_rent"] = lease["monthly_rent"]
+    
+    return property_data
 
 
 @router.put("/{property_id}", response_model=Property)

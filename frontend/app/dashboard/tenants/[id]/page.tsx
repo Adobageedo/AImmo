@@ -21,8 +21,8 @@ import {
     AlertCircle,
     CheckCircle,
 } from "lucide-react"
-import { EntityDetail } from "@/components/entity"
-import { useTenants } from "@/lib/hooks/use-tenants"
+import { EntityDetail, AddressInfoSection, DocumentsList } from "@/components/entity"
+import { useTenants, useEntityDocuments } from "@/lib/hooks"
 import type { Tenant } from "@/lib/types/entity"
 
 export default function TenantDetailPage() {
@@ -43,6 +43,12 @@ export default function TenantDetailPage() {
         formatContact,
         hasCompleteProfile,
     } = useTenants({ autoLoad: false })
+
+    // Use entity documents hook
+    const { documents: tenantDocuments } = useEntityDocuments({
+        entityType: "tenant",
+        entityId: tenantId,
+    })
 
     // Load tenant on mount
     useEffect(() => {
@@ -213,24 +219,19 @@ export default function TenantDetailPage() {
                         </div>
                     ),
                 },
-                ...(tenant.address ? [{
-                    id: "address",
-                    title: "Adresse personnelle",
-                    icon: MapPin,
-                    content: (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {buildAddressInfo(tenant).map((item, idx) => (
-                                <div key={idx} className="flex flex-col">
-                                    <span className="text-sm font-medium text-gray-500 mb-1">{item.label}</span>
-                                    <span className="text-gray-900">{item.value}</span>
-                                </div>
-                            ))}
-                        </div>
-                    ),
-                }] : []),
+                ...(tenant.address ? [AddressInfoSection({
+                    address: tenant.address,
+                })] : []),
             ] : []}
 
             relatedItems={tenant ? [
+                ...(tenant.source_document_id ? [{
+                    id: "source_document",
+                    title: "Document source",
+                    subtitle: "Bail ayant créé ce locataire",
+                    icon: FileText,
+                    href: `/dashboard/documents/${tenant.source_document_id}`,
+                }] : []),
                 ...(tenant.current_lease_id ? [{
                     id: "lease",
                     title: "Bail actif",
@@ -247,7 +248,7 @@ export default function TenantDetailPage() {
                 }] : []),
             ] : []}
 
-            documents={[]}
+            documents={DocumentsList({ documents: tenantDocuments })}
             onAddDocument={() => router.push(`/dashboard/documents?tenant_id=${tenantId}`)}
         />
     )

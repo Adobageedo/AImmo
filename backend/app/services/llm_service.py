@@ -45,13 +45,20 @@ class LLMService:
                 "messages": messages,
             }
             
-            # Certains modèles (o1, GPT-5?) utilisent max_completion_tokens au lieu de max_tokens
-            # et ne supportent pas le paramètre temperature
-            is_reasoning_model = "gpt-5" in model.lower() or model.lower().startswith("o1")
+            # Certains modèles (o1, gpt-5+) utilisent max_completion_tokens au lieu de max_tokens
+            # o1 models ne supportent pas le paramètre temperature
+            is_o1_model = model.lower().startswith("o1")
+            is_gpt5_or_higher = "gpt-5" in model.lower() or "gpt-6" in model.lower()
             
-            if is_reasoning_model:
+            if is_gpt5_or_higher:
+                # GPT-5+ utilise max_completion_tokens mais supporte temperature
+                kwargs["max_completion_tokens"] = max_tokens
+                kwargs["temperature"] = temperature
+            elif is_o1_model:
+                # o1 utilise max_completion_tokens et ne supporte pas temperature
                 kwargs["max_completion_tokens"] = max_tokens
             else:
+                # Modèles standards (GPT-4, etc.)
                 kwargs["max_tokens"] = max_tokens
                 kwargs["temperature"] = temperature
             

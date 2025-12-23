@@ -22,8 +22,8 @@ import {
     Car,
     Trees,
 } from "lucide-react"
-import { EntityDetail } from "@/components/entity"
-import { useProperties } from "@/lib/hooks/use-properties"
+import { EntityDetail, AddressInfoSection, DocumentsList } from "@/components/entity"
+import { useProperties, useEntityDocuments } from "@/lib/hooks"
 import type { Property } from "@/lib/types/entity"
 
 export default function PropertyDetailPage() {
@@ -42,6 +42,13 @@ export default function PropertyDetailPage() {
         calculateYield,
         formatAddress,
     } = useProperties({ autoLoad: false })
+    console.log("Property:", property);
+
+    // Use entity documents hook
+    const { documents: propertyDocuments } = useEntityDocuments({
+        entityType: "property",
+        entityId: propertyId,
+    })
 
     // Load property on mount
     useEffect(() => {
@@ -95,25 +102,12 @@ export default function PropertyDetailPage() {
     // Build info items
     const buildInfoItems = (p: Property) => [
         { label: "Type de bien", value: getTypeLabel(p.property_type) },
-        { label: "Surface", value: `${p.surface_m2} m²` },
-        { label: "Nombre de pièces", value: p.rooms ? `${p.rooms} pièces` : undefined, empty: !p.rooms },
-        { label: "Chambres", value: p.bedrooms ? `${p.bedrooms}` : undefined, empty: !p.bedrooms },
-        { label: "Salles de bain", value: p.bathrooms ? `${p.bathrooms}` : undefined, empty: !p.bathrooms },
+        { label: "Surface", value: `${p.surface_area} m²` },
         { label: "Année de construction", value: p.construction_year ? `${p.construction_year}` : undefined, empty: !p.construction_year },
         { label: "Dernière rénovation", value: p.last_renovation_year ? `${p.last_renovation_year}` : undefined, empty: !p.last_renovation_year },
-        { label: "Classe énergie", value: p.energy_class || undefined, empty: !p.energy_class },
+        { label: "Classe énergie (DPE)", value: p.energy_class || undefined, empty: !p.energy_class },
         { label: "Classe GES", value: p.ges_class || undefined, empty: !p.ges_class },
     ]
-
-    // Build address items
-    const buildAddressItems = (p: Property) => {
-        return [
-            { label: "Rue", value: p.address },
-            { label: "Code postal", value: p.postal_code },
-            { label: "Ville", value: p.city },
-            { label: "Pays", value: p.country },
-        ]
-    }
 
     // Build financial items
     const buildFinancialItems = (p: Property) => [
@@ -125,16 +119,6 @@ export default function PropertyDetailPage() {
         { label: "Taxe foncière", value: formatCurrency(p.property_tax), empty: !p.property_tax },
     ]
 
-    // Build amenities
-    const buildAmenities = (p: Property) => {
-        const amenities = []
-        if (p.has_parking) amenities.push({ icon: Car, label: "Parking" })
-        if (p.has_cellar) amenities.push({ icon: Home, label: "Cave" })
-        if (p.has_balcony) amenities.push({ icon: SquareStack, label: "Balcon/Terrasse" })
-        if (p.has_garden) amenities.push({ icon: Trees, label: "Jardin" })
-        return amenities
-    }
-
     return (
         <EntityDetail
             title={property?.name || "Chargement..."}
@@ -143,7 +127,7 @@ export default function PropertyDetailPage() {
             status={status || undefined}
             badges={property ? [{ label: getTypeLabel(property.property_type), variant: "secondary" as const }] : []}
             meta={property ? [
-                { icon: SquareStack, value: `${property.surface_m2} m²` },
+                { icon: SquareStack, value: `${property.surface_area} m²` },
                 { icon: MapPin, value: property.city || "—" },
             ] : []}
 
@@ -161,7 +145,7 @@ export default function PropertyDetailPage() {
             stats={property ? [
                 {
                     label: "Loyer mensuel",
-                    value: formatCurrency(property.monthly_rent),
+                    value: formatCurrency(parseFloat(property.monthly_rent as any) || 0),
                     icon: Euro,
                     variant: "highlight",
                 },
@@ -173,12 +157,19 @@ export default function PropertyDetailPage() {
                 },
                 {
                     label: "Valeur actuelle",
-                    value: formatCurrency(property.current_value || property.purchase_price),
+                    value: formatCurrency(
+                        parseFloat(property.current_value as any) || 
+                        parseFloat(property.purchase_price as any) || 
+                        0
+                    ),
                     icon: Building2,
                 },
                 {
                     label: "Charges annuelles",
-                    value: formatCurrency((property.monthly_charges || 0) * 12 + (property.property_tax || 0)),
+                    value: formatCurrency(
+                        (parseFloat(property.monthly_charges as any) || 0) * 12 + 
+                        (parseFloat(property.property_tax as any) || 0)
+                    ),
                     icon: Calendar,
                 },
             ] : []}
@@ -200,23 +191,12 @@ export default function PropertyDetailPage() {
                         </div>
                     ),
                 },
-                {
-                    id: "address",
-                    title: "Adresse",
-                    icon: MapPin,
-                    content: (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {buildAddressItems(property).map((item, idx) => (
-                                <div key={idx} className="flex flex-col">
-                                    <span className="text-sm font-medium text-gray-500 mb-1">{item.label}</span>
-                                    <span className={`text-gray-900 ${!item.value ? "text-gray-400 italic" : ""}`}>
-                                        {item.value || "Non renseigné"}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    ),
-                },
+                AddressInfoSection({
+                    address: property.address,
+                    city: property.city,
+                    postalCode: property.postal_code,
+                    country: property.country,
+                }),
                 {
                     id: "financial",
                     title: "Données financières",
@@ -234,30 +214,23 @@ export default function PropertyDetailPage() {
                         </div>
                     ),
                 },
-                {
-                    id: "amenities",
-                    title: "Équipements",
-                    content: (
-                        <div className="flex flex-wrap gap-3">
-                            {buildAmenities(property).length > 0 ? (
-                                buildAmenities(property).map((amenity, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700"
-                                    >
-                                        <amenity.icon className="h-4 w-4" />
-                                        <span className="text-sm font-medium">{amenity.label}</span>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-gray-500 italic">Aucun équipement renseigné</p>
-                            )}
-                        </div>
-                    ),
-                },
             ] : []}
 
             relatedItems={property ? [
+                ...(property.owner_id ? [{
+                    id: "owner",
+                    title: "Propriétaire",
+                    subtitle: "Voir la fiche propriétaire",
+                    icon: Users,
+                    href: `/dashboard/owners/${property.owner_id}`,
+                }] : []),
+                ...(property.source_document_id ? [{
+                    id: "source_document",
+                    title: "Document source",
+                    subtitle: "Bail ayant créé cette propriété",
+                    icon: FileText,
+                    href: `/dashboard/documents/${property.source_document_id}`,
+                }] : []),
                 ...(property.current_lease_id ? [{
                     id: "lease",
                     title: "Bail actif",
@@ -274,7 +247,7 @@ export default function PropertyDetailPage() {
                 }] : []),
             ] : []}
 
-            documents={[]}
+            documents={DocumentsList({ documents: propertyDocuments })}
             onAddDocument={() => router.push(`/dashboard/documents?property_id=${propertyId}`)}
         />
     )

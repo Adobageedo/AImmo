@@ -64,6 +64,14 @@ export interface ExtractedLeaseData {
     property_city?: string
     property_type?: string
     surface_area?: number
+    construction_year?: number
+    last_renovation_year?: number
+    energy_class?: string
+    ges_class?: string
+    purchase_price?: number
+    purchase_date?: string
+    current_value?: number
+    property_tax?: number
     start_date?: string
     end_date?: string
     monthly_rent?: number

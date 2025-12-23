@@ -101,7 +101,7 @@ const propertyFormSections: EntityFormSection[] = [
         title: "Caractéristiques",
         fields: [
             {
-                key: "surface_m2",
+                key: "surface_area",
                 label: "Surface (m²)",
                 type: "number",
                 placeholder: "50",
@@ -262,7 +262,7 @@ export default function NewPropertyPage() {
             postal_code: values.postal_code as string,
             city: values.city as string,
             country: (values.country as string) || "France",
-            surface_m2: values.surface_m2 as number,
+            surface_area: values.surface_area as number,
             rooms: values.rooms as number | undefined,
             bedrooms: values.bedrooms as number | undefined,
             bathrooms: values.bathrooms as number | undefined,

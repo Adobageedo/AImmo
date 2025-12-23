@@ -20,6 +20,7 @@ ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES public.owners(id) ON DELETE SE
 ALTER TABLE public.owners ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for owners
+DROP POLICY IF EXISTS "Users can view owners in their organization" ON public.owners;
 CREATE POLICY "Users can view owners in their organization"
     ON public.owners
     FOR SELECT
@@ -31,6 +32,7 @@ CREATE POLICY "Users can view owners in their organization"
         )
     );
 
+DROP POLICY IF EXISTS "Users can insert owners in their organization" ON public.owners;
 CREATE POLICY "Users can insert owners in their organization"
     ON public.owners
     FOR INSERT
@@ -42,6 +44,7 @@ CREATE POLICY "Users can insert owners in their organization"
         )
     );
 
+DROP POLICY IF EXISTS "Users can update owners in their organization" ON public.owners;
 CREATE POLICY "Users can update owners in their organization"
     ON public.owners
     FOR UPDATE
@@ -53,6 +56,7 @@ CREATE POLICY "Users can update owners in their organization"
         )
     );
 
+DROP POLICY IF EXISTS "Users can delete owners in their organization" ON public.owners;
 CREATE POLICY "Users can delete owners in their organization"
     ON public.owners
     FOR DELETE
@@ -65,9 +69,10 @@ CREATE POLICY "Users can delete owners in their organization"
     );
 
 -- Create trigger for updated_at
-CREATE OR REPLACE TRIGGER update_owners_updated_at
+DROP TRIGGER IF EXISTS update_owners_updated_at ON public.owners;
+CREATE TRIGGER update_owners_updated_at
     BEFORE UPDATE ON public.owners
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
-ALTER TABLE tenants ADD COLUMN address TEXT;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS address TEXT;
