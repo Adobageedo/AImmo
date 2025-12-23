@@ -1,6 +1,6 @@
 // Navigation constants - centralize all navigation items
 
-import { Building2, FileText, MessageSquare, Settings, Users, TrendingUp, Calendar, Bell } from "lucide-react"
+import { Building2, FileText, MessageSquare, Settings, Users, TrendingUp, Calendar, Bell, Mail, LayoutDashboard } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 export interface NavItem {
@@ -19,10 +19,13 @@ export interface FooterNavSection {
 // Dashboard navigation
 export const DASHBOARD_NAV: NavItem[] = [
     { name: "Tableau de bord", href: "/dashboard", icon: Building2, exact: true },
+    { name: "Portfolio", href: "/dashboard/portfolio", icon: LayoutDashboard },
     { name: "Propriétés", href: "/dashboard/properties", icon: Building2 },
     { name: "Documents", href: "/dashboard/documents", icon: FileText },
     { name: "Locataires", href: "/dashboard/tenants", icon: Users },
     { name: "Finances", href: "/dashboard/finances", icon: TrendingUp },
+    { name: "Alertes", href: "/alerts", icon: Bell },
+    { name: "Newsletter", href: "/newsletter", icon: Mail },
     { name: "Conversations", href: "/dashboard/conversations", icon: MessageSquare },
 ]
 

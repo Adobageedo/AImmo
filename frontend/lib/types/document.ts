@@ -7,6 +7,16 @@ export enum DocumentType {
   AUTRE = "autre",
 }
 
+// RAG Source Types - Generic for future extensibility
+export enum SourceType {
+  DOCUMENT = "document",
+  LEASE = "lease",
+  PROPERTY = "property",
+  TENANT = "tenant",
+  KPI = "kpi",
+  CONVERSATION = "conversation",
+}
+
 export enum FileType {
   PDF = "pdf",
   DOCX = "docx",
@@ -25,6 +35,7 @@ export interface Document {
   title: string
   description?: string
   document_type: DocumentType
+  source_type: SourceType // For RAG indexing
   folder_path: string
   file_path: string
   file_type: FileType

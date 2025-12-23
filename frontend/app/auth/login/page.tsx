@@ -8,6 +8,9 @@ import { AuthCard, FormField, AuthError } from "@/components/auth"
 import { useAuth } from "@/lib/hooks"
 import { Loader2 } from "lucide-react"
 
+import { propertyService } from "@/lib/services/property-service"
+import { useAuthStore } from "@/lib/store/auth-store"
+
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -21,6 +24,20 @@ export default function LoginPage() {
     const success = await login({ email, password })
 
     if (success) {
+      // Check for onboarding status (empty properties)
+      try {
+        const { currentOrganizationId } = useAuthStore.getState()
+        if (currentOrganizationId) {
+          const properties = await propertyService.listProperties(currentOrganizationId)
+          if (properties.length === 0) {
+            router.push("/onboarding")
+            return
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check onboarding status", err)
+      }
+
       router.push("/dashboard")
       router.refresh()
     }

@@ -37,7 +37,7 @@ export interface SignupCredentials {
 export interface AuthResponse {
     success: boolean
     user?: User
-    organizations?: Organization[]
+    organization?: Organization | null
     error?: string
 }
 

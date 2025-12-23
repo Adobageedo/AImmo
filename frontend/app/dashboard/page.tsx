@@ -5,8 +5,10 @@ import { StatCard, ActionCard, PageHeader } from '@/components/ui'
 import { EmptyState } from '@/components/ui/empty-state'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: { session } } = await supabase.auth.getSession()
 

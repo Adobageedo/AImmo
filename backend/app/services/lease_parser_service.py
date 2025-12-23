@@ -34,9 +34,11 @@ FORMAT JSON ATTENDU:
         {{
             "type": "landlord",
             "name": "Nom du propriétaire/bailleur",
+            "company_name": "Nom de la société (ex: SCI XXX) ou null",
             "address": "Adresse du bailleur",
             "email": "email@example.com",
-            "phone": "0123456789"
+            "phone": "0123456789",
+            "siret": "Numéro SIRET si disponible"
         }},
         {{
             "type": "tenant",

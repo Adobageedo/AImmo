@@ -14,15 +14,13 @@ export function useAuth() {
     const router = useRouter()
     const {
         user,
-        organizations,
+        organization,
         currentOrganizationId,
         accessToken,
         setUser,
-        setOrganizations,
-        setCurrentOrganization,
+        setOrganization,
         setAccessToken,
         logout: clearAuth,
-        getCurrentOrganization,
         isAuthenticated,
     } = useAuthStore()
 
@@ -62,9 +60,8 @@ export function useAuth() {
 
             setAccessToken(sessionData.session.access_token)
 
-            if (result.organizations && result.organizations.length > 0) {
-                setOrganizations(result.organizations)
-                setCurrentOrganization(result.organizations[0].id)
+            if (result.organization) {
+                setOrganization(result.organization)
             }
 
             return true
@@ -74,7 +71,7 @@ export function useAuth() {
         } finally {
             setLoading(false)
         }
-    }, [setUser, setAccessToken, setOrganizations, setCurrentOrganization])
+    }, [setUser, setAccessToken, setOrganization])
 
     /**
      * Sign up with email and password
@@ -135,8 +132,7 @@ export function useAuth() {
     return {
         // State
         user,
-        organizations,
-        currentOrganization: getCurrentOrganization(),
+        organization,
         currentOrganizationId,
         accessToken,
         isAuthenticated: isAuthenticated(),
@@ -149,6 +145,5 @@ export function useAuth() {
         logout,
         resetPassword,
         clearError,
-        setCurrentOrganization,
     }
 }

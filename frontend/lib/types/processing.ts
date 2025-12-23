@@ -36,6 +36,8 @@ export interface ParsedParty {
   address?: string
   email?: string
   phone?: string
+  company_name?: string
+  siret?: string
 }
 
 export interface ParsedLease {

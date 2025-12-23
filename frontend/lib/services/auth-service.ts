@@ -44,13 +44,19 @@ class AuthService {
                 avatarUrl: authData.user.user_metadata?.avatar_url,
             }
 
-            // Fetch organizations from backend
-            const organizations = await this.fetchUserOrganizations(authData.session.access_token)
+            // Fetch organization from backend (Asset Manager 1:1)
+            const organization = await this.fetchUserOrganization(authData.session.access_token)
+
+            // Set auth store state
+            const store = useAuthStore.getState()
+            store.setUser(user)
+            store.setOrganization(organization)
+            store.setAccessToken(authData.session.access_token)
 
             return {
                 success: true,
                 user,
-                organizations,
+                organization, // Return single org in response
             }
         } catch (error) {
             return {
@@ -153,9 +159,9 @@ class AuthService {
     }
 
     /**
-     * Fetch user organizations from backend
+     * Fetch user organization from backend (Singular 1:1)
      */
-    private async fetchUserOrganizations(accessToken: string): Promise<Organization[]> {
+    private async fetchUserOrganization(accessToken: string): Promise<Organization | null> {
         try {
             const response = await fetch(`${API_URL}/auth/me`, {
                 headers: {
@@ -165,18 +171,25 @@ class AuthService {
 
             if (!response.ok) {
                 console.warn("Failed to fetch organizations")
-                return []
+                return null
             }
 
             const data = await response.json()
-            return data.organizations.map((org: any) => ({
-                id: org.organizations?.id || org.organization_id,
-                name: org.organizations?.name || "Organisation",
-                role: org.roles?.name || "user",
-            }))
+            const orgs = data.organizations || []
+
+            if (orgs.length > 0) {
+                const org = orgs[0] // Take the first one (1:1 enforcement)
+                return {
+                    id: org.organizations?.id || org.organization_id,
+                    name: org.organizations?.name || "Organisation",
+                    role: org.roles?.name || "user",
+                }
+            }
+
+            return null
         } catch (error) {
-            console.error("Error fetching organizations:", error)
-            return []
+            console.error("Error fetching organization:", error)
+            return null
         }
     }
 

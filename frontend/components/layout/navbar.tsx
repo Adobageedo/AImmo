@@ -19,7 +19,7 @@ import { Building2 } from "lucide-react"
 
 export function Navbar() {
   const pathname = usePathname()
-  const { user, currentOrganization, logout } = useAuth()
+  const { user, organization: currentOrganization, logout } = useAuth()
   const { isOpen: mobileMenuOpen, toggle: toggleMobileMenu, close: closeMobileMenu } = useDisclosure()
 
   const isActive = (item: typeof DASHBOARD_NAV[0]) => {
@@ -53,8 +53,8 @@ export function Navbar() {
                   key={item.name}
                   href={item.href}
                   className={`inline-flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${active
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    ? "bg-indigo-50 text-indigo-700"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                     }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -133,8 +133,8 @@ export function Navbar() {
                   key={item.name}
                   href={item.href}
                   className={`flex items-center space-x-3 rounded-lg px-3 py-2 text-base font-medium transition-colors ${active
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-700 hover:bg-gray-100"
+                    ? "bg-indigo-50 text-indigo-700"
+                    : "text-gray-700 hover:bg-gray-100"
                     }`}
                   onClick={closeMobileMenu}
                 >

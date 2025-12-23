@@ -1,0 +1,317 @@
+/* Document Explorer BEM Styles Module */
+
+/* Main container */
+.document-explorer {
+    @apply space-y-4;
+}
+
+/* Header section */
+.document-explorer__header {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4;
+}
+
+.document-explorer__title {
+    @apply text-3xl font-bold text-gray-900;
+}
+
+.document-explorer__description {
+    @apply text-gray-500 mt-1;
+}
+
+.document-explorer__actions {
+    @apply flex items-center gap-2 shrink-0;
+}
+
+/* Search and filter bar */
+.document-explorer__toolbar {
+    @apply flex flex-col sm:flex-row gap-4;
+}
+
+.document-explorer__search {
+    @apply relative flex-1;
+}
+
+.document-explorer__search-icon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400;
+}
+
+.document-explorer__search-input {
+    @apply w-full pl-10 pr-10 h-10 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 outline-none;
+}
+
+.document-explorer__filter-button {
+    @apply flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors shrink-0;
+}
+
+/* Folder path breadcrumb */
+.document-explorer__breadcrumb {
+    @apply flex items-center gap-2 px-4 py-3 bg-white rounded-lg border text-sm text-gray-600;
+}
+
+.document-explorer__breadcrumb-icon {
+    @apply h-4 w-4 text-indigo-500;
+}
+
+.document-explorer__breadcrumb-path {
+    @apply font-medium;
+}
+
+/* Document list container */
+.document-explorer__list-container {
+    @apply bg-white rounded-xl border shadow-sm overflow-hidden;
+}
+
+/* Loading state */
+.document-explorer__loading {
+    @apply flex items-center justify-center py-16;
+}
+
+.document-explorer__loading-content {
+    @apply flex flex-col items-center gap-3;
+}
+
+.document-explorer__loading-spinner {
+    @apply h-8 w-8 text-indigo-500 animate-spin;
+}
+
+.document-explorer__loading-text {
+    @apply text-gray-500;
+}
+
+/* Empty state */
+.document-explorer__empty {
+    @apply flex flex-col items-center justify-center py-12 px-4 text-center;
+}
+
+.document-explorer__empty-icon {
+    @apply flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-4;
+}
+
+.document-explorer__empty-title {
+    @apply text-lg font-semibold text-gray-900 mb-1;
+}
+
+.document-explorer__empty-description {
+    @apply text-sm text-gray-500 max-w-sm;
+}
+
+/* Folder styles */
+.document-explorer__folder {
+    @apply flex items-center gap-3 p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer;
+}
+
+.document-explorer__folder-icon {
+    @apply h-5 w-5 text-yellow-500;
+}
+
+.document-explorer__folder-name {
+    @apply font-medium text-gray-900;
+}
+
+.document-explorer__folder-count {
+    @apply text-sm text-gray-500;
+}
+
+/* File styles */
+.document-explorer__file {
+    @apply flex items-center justify-between p-4 border-b hover:bg-accent/50 transition-colors;
+}
+
+.document-explorer__file:last-child {
+    @apply border-b-0;
+}
+
+.document-explorer__file-info {
+    @apply flex items-center gap-3 flex-1 min-w-0;
+}
+
+.document-explorer__file-icon {
+    @apply h-5 w-5 text-gray-400 flex-shrink-0;
+}
+
+/* File type modifiers */
+.document-explorer__file--pdf .document-explorer__file-icon {
+    @apply text-red-500;
+}
+
+.document-explorer__file--image .document-explorer__file-icon {
+    @apply text-green-500;
+}
+
+.document-explorer__file--doc .document-explorer__file-icon {
+    @apply text-blue-500;
+}
+
+.document-explorer__file--excel .document-explorer__file-icon {
+    @apply text-emerald-500;
+}
+
+.document-explorer__file-details {
+    @apply flex-1 min-w-0;
+}
+
+.document-explorer__file-name {
+    @apply font-medium truncate text-gray-900;
+}
+
+.document-explorer__file-meta {
+    @apply flex items-center gap-2 text-xs text-gray-500;
+}
+
+.document-explorer__file-meta-separator {
+    @apply text-gray-300;
+}
+
+/* Tags */
+.document-explorer__file-tags {
+    @apply flex gap-1 mt-1 flex-wrap;
+}
+
+.document-explorer__file-tag {
+    @apply inline-block px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full;
+}
+
+.document-explorer__file-tag--bail {
+    @apply bg-indigo-100 text-indigo-700;
+}
+
+.document-explorer__file-tag--facture {
+    @apply bg-green-100 text-green-700;
+}
+
+/* File actions */
+.document-explorer__file-actions {
+    @apply flex items-center gap-1;
+}
+
+.document-explorer__file-action {
+    @apply p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors;
+}
+
+.document-explorer__file-action--danger {
+    @apply hover:text-red-600 hover:bg-red-50;
+}
+
+/* Sidebar */
+.document-explorer__sidebar {
+    @apply space-y-4;
+}
+
+/* Quota display */
+.document-explorer__quota {
+    @apply p-4 bg-white rounded-xl border shadow-sm space-y-2;
+}
+
+.document-explorer__quota-header {
+    @apply flex justify-between text-sm;
+}
+
+.document-explorer__quota-label {
+    @apply text-gray-500;
+}
+
+.document-explorer__quota-value {
+    @apply font-medium text-gray-900;
+}
+
+.document-explorer__quota-bar {
+    @apply h-2 bg-gray-100 rounded-full overflow-hidden;
+}
+
+.document-explorer__quota-progress {
+    @apply h-full rounded-full transition-all duration-300;
+    background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.document-explorer__quota-progress--warning {
+    background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+}
+
+.document-explorer__quota-percent {
+    @apply text-xs text-gray-500;
+}
+
+/* Stats card */
+.document-explorer__stats {
+    @apply bg-white rounded-xl border shadow-sm p-4 space-y-3;
+}
+
+.document-explorer__stats-title {
+    @apply font-semibold text-gray-900;
+}
+
+.document-explorer__stats-list {
+    @apply space-y-2;
+}
+
+.document-explorer__stats-item {
+    @apply flex items-center justify-between text-sm;
+}
+
+.document-explorer__stats-label {
+    @apply text-gray-500;
+}
+
+/* Tip card */
+.document-explorer__tip {
+    @apply rounded-xl border p-4;
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+    border-color: #c7d2fe;
+}
+
+.document-explorer__tip-title {
+    @apply font-semibold text-indigo-900;
+}
+
+.document-explorer__tip-text {
+    @apply mt-2 text-sm text-indigo-700;
+}
+
+/* Upload dialog */
+.document-upload {
+    @apply space-y-4;
+}
+
+.document-upload__dropzone {
+    @apply border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer;
+}
+
+.document-upload__dropzone--active {
+    @apply border-indigo-500 bg-indigo-50;
+}
+
+.document-upload__dropzone-icon {
+    @apply h-12 w-12 mx-auto text-gray-400 mb-4;
+}
+
+.document-upload__dropzone-text {
+    @apply text-gray-600;
+}
+
+.document-upload__dropzone-hint {
+    @apply text-sm text-gray-400 mt-2;
+}
+
+.document-upload__preview {
+    @apply flex items-center gap-3 p-3 bg-gray-50 rounded-lg;
+}
+
+.document-upload__preview-icon {
+    @apply h-8 w-8 text-gray-400;
+}
+
+.document-upload__preview-info {
+    @apply flex-1 min-w-0;
+}
+
+.document-upload__preview-name {
+    @apply font-medium text-gray-900 truncate;
+}
+
+.document-upload__preview-size {
+    @apply text-xs text-gray-500;
+}
+
+.document-upload__preview-remove {
+    @apply p-1 text-gray-400 hover:text-red-500 transition-colors;
+}

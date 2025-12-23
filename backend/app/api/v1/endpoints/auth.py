@@ -165,22 +165,90 @@ async def update_password(
 
 
 @router.get("/me")
-async def get_current_user_info(user_id: str =Depends(get_current_user_id)):
+async def get_current_user_info(user_id: str = Depends(get_current_user_id)):
     supabase = get_supabase()
     
     user_orgs = supabase.table("organization_users").select(
         "organization_id, organizations(id, name, description), roles(id, name, permissions)"
-    ).eq("user_id", user.user.id).execute()
+    ).eq("user_id", user_id).execute()
+    
+    # Get user info from auth
+    auth_user = supabase.auth.get_user()
     
     return {
         "user": {
-            "id": user.user.id,
-            "email": user.user.email,
-            "created_at": user.user.created_at,
+            "id": user_id,
+            "email": auth_user.user.email if auth_user.user else None,
+            "created_at": auth_user.user.created_at if auth_user.user else None,
         },
         "organizations": user_orgs.data
     }
 
+
+
+@router.post("/test-setup")
+async def create_test_user():
+    supabase = get_supabase()
+    
+    # Generate random credentials
+    import random, string
+    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    email = f"test_auto_{suffix}@example.com"
+    password = "TestPassword123!"
+    
+    try:
+        # Create user with auto-confirm using Admin API
+        user_data = supabase.auth.admin.create_user({
+            "email": email,
+            "password": password,
+            "email_confirm": True
+        })
+        
+        user_id = user_data.user.id
+        
+        # Create org
+        org_response = supabase.table("organizations").insert({
+            "name": f"Test Org {suffix}",
+            "description": "Auto-created test org"
+        }).execute()
+        
+        org_id = org_response.data[0]["id"]
+        
+        # Assign role (Admin)
+        admin_role = supabase.table("roles").select("id").eq("name", "admin").execute()
+        if not admin_role.data:
+             # Create admin role if not exists (fallback)
+             role_response = supabase.table("roles").insert({"name": "admin", "description": "Administrator"}).execute()
+             role_id = role_response.data[0]["id"]
+        else:
+             role_id = admin_role.data[0]["id"]
+        
+        supabase.table("organization_users").insert({
+            "organization_id": org_id,
+            "user_id": user_id,
+            "role_id": role_id
+        }).execute()
+        
+        return {
+            "email": email,
+            "password": password,
+            "organization_id": org_id,
+            "user_id": user_id
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.get("/debug/check-admin")
+async def check_admin_access():
+    supabase = get_supabase()
+    try:
+        users = supabase.auth.admin.list_users()
+        return {"status": "ok", "user_count": len(users)}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 @router.post("/resend-verification")
 async def resend_verification(data: ResetPasswordRequest):

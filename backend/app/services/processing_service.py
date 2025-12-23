@@ -127,6 +127,41 @@ class ProcessingService:
         
         return DocumentProcessing(**result.data[0])
     
+    def _get_or_create_owner(self, organization_id: UUID, party_data: any) -> Optional[UUID]:
+        """Récupère ou crée un propriétaire (Owner)"""
+        if not party_data or not party_data.name:
+            return None
+
+        # Chercher existence
+        existing = self.supabase.table("owners").select("id").eq(
+            "organization_id", str(organization_id)
+        ).eq("name", party_data.name).execute()
+
+        if existing.data:
+            return UUID(existing.data[0]["id"])
+
+        # Créer nouveau
+        owner_data = {
+            "organization_id": str(organization_id),
+            "name": party_data.name,
+            "email": party_data.email,
+            "phone": party_data.phone,
+            # "company_name": party_data.company_name, # Assuming ParsedLease party has this field
+            # Check ExtractedParty definition in parsed lease schema (ParsedLease -> parties)
+        }
+        
+        # Safe access to extra attributes if they exist
+        if hasattr(party_data, 'company_name'):
+             owner_data["company_name"] = party_data.company_name
+        if hasattr(party_data, 'address'):
+             owner_data["address"] = party_data.address
+
+        result = self.supabase.table("owners").insert(owner_data).execute()
+        if result.data:
+            return UUID(result.data[0]["id"])
+        
+        return None
+
     async def validate_and_create_entities(
         self,
         processing_id: UUID,
@@ -151,6 +186,13 @@ class ProcessingService:
         result = EntityCreationResult()
         
         try:
+            # Gestion du propriétaire (Owner)
+            landlord_party = next((p for p in validated_data.parties if p.type == "landlord"), None)
+            owner_id = None
+            
+            if landlord_party and landlord_party.name:
+                owner_id = self._get_or_create_owner(organization_id, landlord_party)
+
             # Créer la propriété
             if validated_data.property_address:
                 property_data = {
@@ -162,6 +204,8 @@ class ProcessingService:
                     "property_type": validated_data.property_type or "appartement",
                     "surface_area": validated_data.surface_area,
                     "organization_id": str(organization_id),
+                    "owner_name": landlord_party.name if landlord_party else None,
+                    "owner_id": str(owner_id) if owner_id else None,
                 }
                 
                 prop_result = self.supabase.table("properties").insert(property_data).execute()

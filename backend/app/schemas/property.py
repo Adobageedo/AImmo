@@ -15,6 +15,8 @@ class PropertyBase(BaseModel):
     surface_area: Optional[Decimal] = None
     estimated_value: Optional[Decimal] = None
     organization_id: UUID
+    owner_name: Optional[str] = None
+    owner_id: Optional[UUID] = None
 
 
 class PropertyCreate(PropertyBase):
@@ -30,6 +32,8 @@ class PropertyUpdate(BaseModel):
     property_type: Optional[str] = None
     surface_area: Optional[Decimal] = None
     estimated_value: Optional[Decimal] = None
+    owner_name: Optional[str] = None
+    owner_id: Optional[UUID] = None
 
 
 class Property(PropertyBase):

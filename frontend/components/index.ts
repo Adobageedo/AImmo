@@ -18,3 +18,9 @@ export { QuotaDisplay } from "./documents/quota-display"
 
 // Organization
 export { OrganizationSwitcher } from "./organization-switcher"
+
+// Dashboard components
+export { KpiCard, MiniKpiCard } from "./dashboard/KpiCard"
+export { Chart, ProgressRing } from "./dashboard/Chart"
+export { GeoMap } from "./dashboard/GeoMap"
+export { DashboardFiltersBar } from "./dashboard/DashboardFilters"
