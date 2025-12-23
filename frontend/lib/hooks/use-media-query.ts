@@ -1,0 +1,45 @@
+"use client"
+
+import { useState, useEffect } from "react"
+
+/**
+ * Custom hook to detect if a media query matches
+ */
+export function useMediaQuery(query: string): boolean {
+    const [matches, setMatches] = useState(false)
+
+    useEffect(() => {
+        const media = window.matchMedia(query)
+
+        // Set initial value
+        setMatches(media.matches)
+
+        // Create event listener
+        const listener = (event: MediaQueryListEvent) => {
+            setMatches(event.matches)
+        }
+
+        // Add listener
+        media.addEventListener("change", listener)
+
+        // Cleanup
+        return () => {
+            media.removeEventListener("change", listener)
+        }
+    }, [query])
+
+    return matches
+}
+
+// Convenience hooks for common breakpoints (Tailwind defaults)
+export function useIsMobile() {
+    return !useMediaQuery("(min-width: 640px)")
+}
+
+export function useIsTablet() {
+    return useMediaQuery("(min-width: 640px) and (max-width: 1023px)")
+}
+
+export function useIsDesktop() {
+    return useMediaQuery("(min-width: 1024px)")
+}

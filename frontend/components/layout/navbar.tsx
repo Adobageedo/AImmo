@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { Building2, FileText, MessageSquare, Settings, LogOut, User, ChevronDown } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { User, ChevronDown, Menu, X, Settings, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -12,24 +12,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useAuthStore } from "@/lib/store/auth-store"
-
-const navigation = [
-  { name: "Propriétés", href: "/dashboard/properties", icon: Building2 },
-  { name: "Documents", href: "/dashboard/documents", icon: FileText },
-  { name: "Conversations", href: "/dashboard/conversations", icon: MessageSquare },
-]
+import { useAuth, useDisclosure, useIsMobile } from "@/lib/hooks"
+import { DASHBOARD_NAV } from "@/lib/constants/navigation"
+import { APP_NAME } from "@/lib/constants/app"
+import { Building2 } from "lucide-react"
 
 export function Navbar() {
   const pathname = usePathname()
-  const router = useRouter()
-  const { user, organizations, currentOrganizationId, logout } = useAuthStore()
-  
-  const currentOrganization = organizations.find(org => org.id === currentOrganizationId)
+  const { user, currentOrganization, logout } = useAuth()
+  const { isOpen: mobileMenuOpen, toggle: toggleMobileMenu, close: closeMobileMenu } = useDisclosure()
 
-  const handleLogout = () => {
-    logout()
-    router.push("/auth/login")
+  const isActive = (item: typeof DASHBOARD_NAV[0]) => {
+    if (item.exact) {
+      return pathname === item.href
+    }
+    return pathname?.startsWith(item.href)
   }
 
   return (
@@ -42,24 +39,23 @@ export function Navbar() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600">
                 <Building2 className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-semibold text-gray-900">AImmo</span>
+              <span className="text-xl font-semibold text-gray-900">{APP_NAME}</span>
             </Link>
           </div>
 
-          {/* Navigation */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-1">
-            {navigation.map((item) => {
-              const isActive = pathname?.startsWith(item.href)
+            {DASHBOARD_NAV.map((item) => {
+              const active = isActive(item)
               const Icon = item.icon
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`inline-flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                    isActive
+                  className={`inline-flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${active
                       ? "bg-indigo-50 text-indigo-700"
                       : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.name}</span>
@@ -75,7 +71,7 @@ export function Navbar() {
                 {currentOrganization.name}
               </div>
             )}
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2">
@@ -102,15 +98,54 @@ export function Navbar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Déconnexion</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Mobile menu button */}
+            <button
+              type="button"
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              onClick={toggleMobileMenu}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t bg-white">
+          <div className="space-y-1 px-4 py-3">
+            {DASHBOARD_NAV.map((item) => {
+              const active = isActive(item)
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center space-x-3 rounded-lg px-3 py-2 text-base font-medium transition-colors ${active
+                      ? "bg-indigo-50 text-indigo-700"
+                      : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  onClick={closeMobileMenu}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </nav>
   )
 }
