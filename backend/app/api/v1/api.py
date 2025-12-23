@@ -12,6 +12,8 @@ from app.api.v1.endpoints import (
     dashboard,
     tenants,
     leases,
+    alerts,
+    newsletters,
 )
 
 api_router = APIRouter()
@@ -28,4 +30,6 @@ api_router.include_router(processing.router, prefix="/processing", tags=["proces
 api_router.include_router(rag.router, prefix="/rag", tags=["rag"])
 api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+api_router.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
+api_router.include_router(newsletters.router, prefix="/newsletters", tags=["newsletters"])
 

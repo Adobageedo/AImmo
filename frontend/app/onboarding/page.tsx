@@ -10,11 +10,19 @@ import { UploadDialog } from "@/components/documents/upload-dialog"
 import { DocumentType } from "@/lib/types/document"
 import { Building2, FileText, CheckCircle2, ArrowRight } from "lucide-react"
 
+import { DocumentProvider } from "@/lib/contexts/document-context"
+import { useEffect } from "react"
+
 type OnboardingStep = "welcome" | "upload" | "validate" | "complete"
 
 export default function OnboardingPage() {
     const router = useRouter()
     const [step, setStep] = useState<OnboardingStep>("welcome")
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     // Reuse existing parsing logic
     const {
@@ -144,15 +152,26 @@ export default function OnboardingPage() {
                 </Button>
             </div>
 
-            {parsingResult && (
+            {parsingStatus === "ocr_processing" || parsingStatus === "parsing" || parsingLoading ? (
+                <div className="flex flex-col items-center justify-center p-12 space-y-4 bg-white rounded-xl border shadow-sm">
+                    <div className="h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-lg font-medium">Analyse en cours...</p>
+                    <p className="text-sm text-muted-foreground">Nous extrayons les données de votre bail.</p>
+                </div>
+            ) : parsingResult ? (
                 <ParsingValidation
                     result={parsingResult}
-                    loading={parsingLoading || parsingStatus === "parsing" || parsingStatus === "ocr_processing"}
+                    loading={parsingLoading}
                     onFieldChange={updateField}
                     onPartyChange={updateParty}
                     onValidate={handleValidation}
                     onCancel={() => setStep("upload")}
                 />
+            ) : (
+                <div className="text-center py-12">
+                    <p className="text-red-500">Une erreur est survenue lors du parsing.</p>
+                    <Button onClick={() => setStep("upload")} className="mt-4">Réessayer</Button>
+                </div>
             )}
         </div>
     )
@@ -183,12 +202,16 @@ export default function OnboardingPage() {
         </div>
     )
 
+    if (!mounted) return null
+
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-            {step === "welcome" && renderWelcome()}
-            {step === "upload" && renderUpload()}
-            {step === "validate" && renderValidate()}
-            {step === "complete" && renderComplete()}
-        </div>
+        <DocumentProvider>
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+                {step === "welcome" && renderWelcome()}
+                {step === "upload" && renderUpload()}
+                {step === "validate" && renderValidate()}
+                {step === "complete" && renderComplete()}
+            </div>
+        </DocumentProvider>
     )
 }

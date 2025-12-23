@@ -8,8 +8,8 @@ from app.core.constants import DocumentLanguage, ProcessingStatus, OCRProvider
 class OCRResult(BaseModel):
     text: str
     confidence: float
-    language: DocumentLanguage
-    provider: OCRProvider
+    language: Optional[DocumentLanguage] = None
+    provider: Optional[OCRProvider] = None
     page_count: int = 1
     is_scanned: bool = False
     metadata: Dict[str, Any] = {}
@@ -17,7 +17,7 @@ class OCRResult(BaseModel):
 
 class ParsedParty(BaseModel):
     type: str  # "landlord" ou "tenant"
-    name: str
+    name: Optional[str] = "Inconnu"
     address: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -26,8 +26,8 @@ class ParsedParty(BaseModel):
 
 
 class ParsedLease(BaseModel):
-    parties: List[ParsedParty]
-    property_address: str
+    parties: List[ParsedParty] = []
+    property_address: Optional[str] = "Adresse non trouvée"
     property_type: Optional[str] = None
     surface_area: Optional[float] = None
     start_date: Optional[date] = None

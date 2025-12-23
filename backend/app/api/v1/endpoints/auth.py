@@ -165,21 +165,26 @@ async def update_password(
 
 
 @router.get("/me")
-async def get_current_user_info(user_id: str = Depends(get_current_user_id)):
+async def get_current_user_info(current_user = Depends(get_current_user)):
+    # Explicitly verify user object structure
+    if not hasattr(current_user, 'user') or not current_user.user:
+         raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user session structure"
+        )
+
     supabase = get_supabase()
+    user_id = current_user.user.id
     
     user_orgs = supabase.table("organization_users").select(
         "organization_id, organizations(id, name, description), roles(id, name, permissions)"
     ).eq("user_id", user_id).execute()
     
-    # Get user info from auth
-    auth_user = supabase.auth.get_user()
-    
     return {
         "user": {
             "id": user_id,
-            "email": auth_user.user.email if auth_user.user else None,
-            "created_at": auth_user.user.created_at if auth_user.user else None,
+            "email": current_user.user.email,
+            "created_at": current_user.user.created_at,
         },
         "organizations": user_orgs.data
     }

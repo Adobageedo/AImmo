@@ -445,14 +445,18 @@ function DocumentsContent() {
 export default function DocumentsPage() {
   const { currentOrganizationId, isAuthenticated } = useAuthStore()
   const router = useRouter()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     // If not authenticated, redirect to login
     if (!isAuthenticated()) {
       router.push("/auth/login")
       return
     }
   }, [isAuthenticated, router])
+
+  if (!mounted) return null
 
   if (!currentOrganizationId) {
     if (isAuthenticated()) {

@@ -1,6 +1,9 @@
 from pydantic_settings import BaseSettings
 from typing import List
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AImmo API"
@@ -23,8 +26,11 @@ class Settings(BaseSettings):
     def allowed_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
     
-    # OpenAI (optionnel pour parsing LLM)
+    # LLM Settings
     OPENAI_API_KEY: str = ""
+    DEFAULT_LLM_MODEL: str = "gpt-4.1-nano"
+    DEFAULT_LLM_TEMPERATURE: float = 0.1
+    DEFAULT_LLM_MAX_TOKENS: int = 4000
     
     class Config:
         env_file = ".env"

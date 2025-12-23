@@ -17,6 +17,9 @@ from app.schemas.ocr import (
 from app.core.constants import ProcessingStatus, OCRProvider
 
 
+import logging
+logger = logging.getLogger("app")
+
 class ProcessingService:
     def __init__(self):
         self.supabase = get_supabase()
@@ -63,26 +66,32 @@ class ProcessingService:
             processing_id = result.data[0]["id"]
         
         try:
+            logger.info(f"DEBUG: Processing document {document_id}...")
             # Télécharger le fichier depuis Supabase Storage
             file_bytes = self.supabase.storage.from_("documents").download(doc["file_path"])
+            logger.info(f"DEBUG: Downloaded {len(file_bytes)} bytes")
             
             # OCR
+            logger.info(f"DEBUG: Running OCR with provider {ocr_provider}...")
             ocr_result = await ocr_service.process_document(
                 file_bytes,
-                doc["title"],
+                doc["file_path"],
                 provider=ocr_provider
             )
-            
+            logger.info(f"DEBUG: OCR completed, text length: {len(ocr_result.text)}")
+
             # Parsing (seulement si c'est un bail)
             parsed_lease = None
             if doc.get("document_type") == "bail":
+                logger.info(f"DEBUG: Running Lease Parsing...")
                 parsed_lease = await lease_parser_service.parse_lease(ocr_result.text)
+                logger.info(f"DEBUG: Parsing completed, confidence: {parsed_lease.confidence if parsed_lease else 'None'}")
             
             # Sauvegarder les résultats
             update_data = {
                 "status": ProcessingStatus.COMPLETED.value,
-                "ocr_result": ocr_result.model_dump(),
-                "parsed_lease": parsed_lease.model_dump() if parsed_lease else None,
+                "ocr_result": ocr_result.model_dump(mode='json'),
+                "parsed_lease": parsed_lease.model_dump(mode='json') if parsed_lease else None,
                 "error_message": None,
             }
             
@@ -90,9 +99,11 @@ class ProcessingService:
                 "id", processing_id
             ).execute()
             
+            logger.info(f"DEBUG: Processing successful for {document_id}")
             return DocumentProcessing(**result.data[0])
             
         except Exception as e:
+            logger.error(f"DEBUG ERROR: {str(e)}", exc_info=True)
             # En cas d'erreur
             error_data = {
                 "status": ProcessingStatus.FAILED.value,
@@ -175,7 +186,7 @@ class ProcessingService:
         # Mettre à jour le traitement comme validé
         self.supabase.table("document_processing").update({
             "status": ProcessingStatus.VALIDATED.value,
-            "parsed_lease": validated_data.model_dump(),
+            "parsed_lease": validated_data.model_dump(mode='json'),
             "validated_at": datetime.now().isoformat(),
             "validated_by": str(user_id),
         }).eq("id", str(processing_id)).execute()

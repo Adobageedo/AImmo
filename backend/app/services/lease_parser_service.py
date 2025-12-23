@@ -3,14 +3,16 @@ import os
 from typing import Optional
 from datetime import datetime
 from openai import OpenAI
+import logging
+logger = logging.getLogger("app")
 
 from app.schemas.ocr import ParsedLease, ParsedParty
 
 
 class LeaseParserService:
     def __init__(self):
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
-        self.client = OpenAI(api_key=self.openai_api_key) if self.openai_api_key else None
+        from app.services.llm_service import llm_service
+        self.llm = llm_service
     
     def build_extraction_prompt(self, text: str) -> str:
         """Construit le prompt d'extraction structuré"""
@@ -66,34 +68,32 @@ FORMAT JSON ATTENDU:
 JSON:"""
     
     async def parse_lease_with_llm(self, text: str) -> ParsedLease:
-        """Parse le bail avec un LLM (GPT-4)"""
-        if not self.client:
-            raise ValueError("OpenAI API key non configurée. Définir OPENAI_API_KEY dans .env")
-        
+        """Parse le bail avec un LLM (via LLMService)"""
+        # Limiter la taille du texte pour éviter de dépasser le contexte LLM.
+        # 100k+ caractères (votre doc actuel) est trop lourd pour une extraction JSON fiable.
+        # On garde le début et la fin (où se trouvent généralement les infos clés).
+        max_chars = 100000 
+        if len(text) > max_chars:
+            logger.info(f"DEBUG: Truncating text from {len(text)} to {max_chars} chars")
+            text = text[:max_chars // 2] + "\n\n[...] (TRONQUÉ POUR L'ANALYSE) [...]\n\n" + text[-max_chars // 2:]
+            
         prompt = self.build_extraction_prompt(text)
+        system_prompt = "Tu es un expert en extraction de données de contrats de bail. Tu renvoies uniquement du JSON valide."
         
         try:
-            response = self.client.chat.completions.create(
-                model="gpt-4-turbo-preview",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "Tu es un expert en extraction de données de contrats de bail. Tu renvoies uniquement du JSON valide."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=0.1,
-                response_format={"type": "json_object"}
+            data = await self.llm.get_json_completion(
+                prompt=prompt,
+                system_prompt=system_prompt
             )
             
-            result_text = response.choices[0].message.content
-            data = json.loads(result_text)
+            # Nettoyage des données
+            raw_parties = data.get("parties", [])
+            for p in raw_parties:
+                if not p.get("name"):
+                    p["name"] = "Inconnu"
             
             # Validation et conversion
-            parties = [ParsedParty(**party) for party in data.get("parties", [])]
+            parties = [ParsedParty(**party) for party in raw_parties]
             
             # Conversion des dates
             start_date = None
@@ -128,7 +128,7 @@ JSON:"""
             
             return ParsedLease(
                 parties=parties,
-                property_address=data.get("property_address", ""),
+                property_address=data.get("property_address") or "Adresse non trouvée",
                 property_type=data.get("property_type"),
                 surface_area=data.get("surface_area"),
                 start_date=start_date,
@@ -177,7 +177,7 @@ JSON:"""
     
     async def parse_lease(self, text: str, use_llm: bool = True) -> ParsedLease:
         """Parse un bail avec LLM ou règles"""
-        if use_llm and self.client:
+        if use_llm and self.llm.api_key:
             return await self.parse_lease_with_llm(text)
         else:
             return self.parse_lease_with_rules(text)
