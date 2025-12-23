@@ -245,6 +245,49 @@ export function useParsing(options: UseParsingOptions = {}) {
     }, [])
 
     /**
+     * Add a new party
+     */
+    const addParty = useCallback((type: "landlord" | "tenant") => {
+        setResult(prev => {
+            if (!prev || !prev.lease_data) return null
+
+            const newParty: any = {
+                type,
+                name: "",
+                confidence: 1.0,
+            }
+
+            return {
+                ...prev,
+                lease_data: {
+                    ...prev.lease_data,
+                    parties: [...prev.lease_data.parties, newParty]
+                }
+            }
+        })
+    }, [])
+
+    /**
+     * Remove a party
+     */
+    const removeParty = useCallback((index: number) => {
+        setResult(prev => {
+            if (!prev || !prev.lease_data) return null
+
+            const newParties = [...prev.lease_data.parties]
+            newParties.splice(index, 1)
+
+            return {
+                ...prev,
+                lease_data: {
+                    ...prev.lease_data,
+                    parties: newParties
+                }
+            }
+        })
+    }, [])
+
+    /**
      * Convert ExtractedLeaseData back to ParsedLease for API
      */
     const convertToParsedLease = (data: ExtractedLeaseData): ParsedLease => {
@@ -332,6 +375,8 @@ export function useParsing(options: UseParsingOptions = {}) {
         startParsing,
         updateField,
         updateParty,
+        addParty,
+        removeParty,
         validateAndComplete,
         reset,
 

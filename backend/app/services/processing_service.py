@@ -197,59 +197,69 @@ class ProcessingService:
         result = EntityCreationResult()
         
         try:
-            # Gestion du propriétaire (Owner)
-            landlord_party = next((p for p in validated_data.parties if p.type == "landlord"), None)
-            owner_id = None
+            # 1. Gestion des propriétaires (Owners)
+            landlord_parties = [p for p in validated_data.parties if p.type == "landlord"]
+            primary_owner_id = None
             
-            if landlord_party and landlord_party.name:
-                owner_id = self._get_or_create_owner(organization_id, landlord_party)
+            for idx, landlord in enumerate(landlord_parties):
+                owner_id = self._get_or_create_owner(organization_id, landlord)
+                if idx == 0:
+                    primary_owner_id = owner_id
 
-            # Créer la propriété
+            # 2. Créer la propriété
             if validated_data.property_address:
+                # Extraire ville et CP si possible (simplifié ici)
+                postal_code = "00000"
+                import re
+                cp_match = re.search(r'(\d{5})', validated_data.property_address)
+                if cp_match:
+                    postal_code = cp_match.group(1)
+                
                 property_data = {
-                    "name": validated_data.property_address.split(",")[0],
+                    "name": validated_data.property_address.split(",")[0][:255],
                     "address": validated_data.property_address,
                     "city": "À compléter",
-                    "postal_code": "00000",
+                    "postal_code": postal_code,
                     "country": "France",
                     "property_type": validated_data.property_type or "appartement",
                     "surface_area": validated_data.surface_area,
                     "organization_id": str(organization_id),
-                    "owner_name": landlord_party.name if landlord_party else None,
-                    "owner_id": str(owner_id) if owner_id else None,
+                    "owner_id": str(primary_owner_id) if primary_owner_id else None,
                 }
                 
                 prop_result = self.supabase.table("properties").insert(property_data).execute()
                 if prop_result.data:
                     result.property_id = UUID(prop_result.data[0]["id"])
             
-            # Créer le locataire
-            tenant_party = next((p for p in validated_data.parties if p.type == "tenant"), None)
-            if tenant_party:
+            # 3. Créer les locataires
+            tenant_parties = [p for p in validated_data.parties if p.type == "tenant"]
+            primary_tenant_id = None
+            
+            for idx, tenant in enumerate(tenant_parties):
                 tenant_data = {
-                    "name": tenant_party.name,
-                    "tenant_type": "particulier",
-                    "email": tenant_party.email,
-                    "phone": tenant_party.phone,
+                    "name": tenant.name or "Locataire inconnu",
+                    "tenant_type": "individual", # Mapping schema requirement
+                    "email": tenant.email,
+                    "phone": tenant.phone,
                     "organization_id": str(organization_id),
                 }
                 
                 tenant_result = self.supabase.table("tenants").insert(tenant_data).execute()
-                if tenant_result.data:
-                    result.tenant_id = UUID(tenant_result.data[0]["id"])
+                if tenant_result.data and idx == 0:
+                    primary_tenant_id = UUID(tenant_result.data[0]["id"])
+                    result.tenant_id = primary_tenant_id
             
-            # Créer le bail
+            # 4. Créer le bail
             if result.property_id and result.tenant_id:
                 lease_data = {
                     "property_id": str(result.property_id),
                     "tenant_id": str(result.tenant_id),
                     "organization_id": str(organization_id),
-                    "start_date": validated_data.start_date.isoformat() if validated_data.start_date else None,
+                    "start_date": validated_data.start_date.isoformat() if validated_data.start_date else datetime.now().date().isoformat(),
                     "end_date": validated_data.end_date.isoformat() if validated_data.end_date else None,
-                    "monthly_rent": validated_data.monthly_rent,
-                    "charges": validated_data.charges,
-                    "deposit": validated_data.deposit,
-                    "indexation_rate": validated_data.indexation_rate,
+                    "monthly_rent": validated_data.monthly_rent or 0,
+                    "charges": validated_data.charges or 0,
+                    "deposit": validated_data.deposit or 0,
                 }
                 
                 lease_result = self.supabase.table("leases").insert(lease_data).execute()

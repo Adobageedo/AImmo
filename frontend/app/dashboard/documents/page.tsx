@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocumentType } from "@/lib/types/document"
 import { useParsing } from "@/lib/hooks/use-parsing"
-import { ParsingValidation } from "@/components/processing/parsing-validation"
+import { MultiStepValidation } from "@/components/processing/multi-step-validation"
 import { useAuthStore } from "@/lib/store/auth-store"
 import { useRouter } from "next/navigation"
 
@@ -26,6 +26,8 @@ function DocumentsContent() {
     startParsing,
     updateField,
     updateParty,
+    addParty,
+    removeParty,
     validateAndComplete,
     reset: resetParsing
   } = useParsing()
@@ -87,30 +89,7 @@ function DocumentsContent() {
 
   // --- Views ---
 
-  // 1. Parsing Validation View
-  if (parsingResult && (parsingStatus === "review" || parsingStatus === "completed")) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Validation du bail"
-          description="Vérifiez les informations extraites avant de confirmer"
-        >
-          <Button variant="outline" onClick={handleBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
-        </PageHeader>
-        <ParsingValidation
-          result={parsingResult}
-          onFieldChange={updateField}
-          onPartyChange={updateParty}
-          onValidate={handleValidation}
-          onCancel={resetParsing}
-          loading={parsingLoading}
-        />
-      </div>
-    )
-  }
+  // 1. Parsing Validation Modal is handled inside the main return
 
   // 2. Parsing Loading View
   if (parsingLoading || parsingStatus === "ocr_processing" || parsingStatus === "parsing") {
@@ -438,6 +417,21 @@ function DocumentsContent() {
           )}
         </div>
       </div>
+
+      {/* Parsing Validation Modal */}
+      {parsingResult && (
+        <MultiStepValidation
+          isOpen={!!parsingResult && (parsingStatus === "review" || parsingStatus === "completed")}
+          onClose={resetParsing}
+          result={parsingResult}
+          onFieldChange={updateField}
+          onPartyChange={updateParty}
+          onAddParty={addParty}
+          onRemoveParty={removeParty}
+          onValidate={handleValidation}
+          loading={parsingLoading}
+        />
+      )}
     </div>
   )
 }
