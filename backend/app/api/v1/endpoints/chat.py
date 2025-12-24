@@ -11,7 +11,7 @@ from datetime import datetime
 import json
 
 from app.core.supabase import get_supabase_client
-from app.api.v1.endpoints.auth import get_current_user
+from app.core.security import get_current_user
 from app.schemas.chat import (
     ChatRequest,
     ChatResponse,
@@ -42,6 +42,21 @@ from app.services.chat_service import (
 
 router = APIRouter()
 
+# Router public pour les endpoints sans auth
+public_router = APIRouter()
+
+
+# ============================================
+# Suggestions (Public)
+# ============================================
+
+@public_router.get("/suggestions", response_model=List[PromptSuggestion])
+async def get_suggestions_public():
+    """
+    Récupère les suggestions de prompts (endpoint public, pas d'auth requise).
+    """
+    return get_prompt_suggestions()
+
 
 # ============================================
 # Conversations
@@ -56,10 +71,13 @@ async def create_conversation(
     """
     Crée une nouvelle conversation.
     """
+    # Extraire l'ID utilisateur
+    user_id = current_user.user.id if hasattr(current_user, 'user') else current_user.get("id")
+    
     # Vérifier l'appartenance à l'organisation
-    member_check = supabase.table("organization_members").select("id").eq(
+    member_check = supabase.table("organization_users").select("id").eq(
         "organization_id", str(request.organization_id)
-    ).eq("user_id", current_user["id"]).execute()
+    ).eq("user_id", user_id).execute()
     
     if not member_check.data:
         raise HTTPException(
@@ -71,7 +89,7 @@ async def create_conversation(
         "id": str(uuid4()),
         "title": request.title,
         "organization_id": str(request.organization_id),
-        "user_id": current_user["id"],
+        "user_id": user_id,
         "created_at": datetime.utcnow().isoformat(),
         "updated_at": datetime.utcnow().isoformat(),
     }
@@ -98,9 +116,11 @@ async def list_conversations(
     """
     Liste les conversations d'une organisation.
     """
+    user_id = current_user.user.id if hasattr(current_user, 'user') else current_user.get("id")
+    
     response = supabase.table("conversations").select("*").eq(
         "organization_id", str(organization_id)
-    ).eq("user_id", current_user["id"]).order(
+    ).eq("user_id", user_id).order(
         "updated_at", desc=True
     ).range(offset, offset + limit - 1).execute()
     
@@ -138,7 +158,9 @@ async def get_conversation(
             detail="Conversation not found"
         )
     
-    if conv_response.data["user_id"] != current_user["id"]:
+    user_id = current_user.user.id if hasattr(current_user, 'user') else current_user.get("id")
+    
+    if conv_response.data["user_id"] != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not your conversation"
@@ -179,7 +201,9 @@ async def update_conversation(
             detail="Conversation not found"
         )
     
-    if conv_response.data["user_id"] != current_user["id"]:
+    user_id = current_user.user.id if hasattr(current_user, 'user') else current_user.get("id")
+    
+    if conv_response.data["user_id"] != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not your conversation"
@@ -216,7 +240,9 @@ async def delete_conversation(
             detail="Conversation not found"
         )
     
-    if conv_response.data["user_id"] != current_user["id"]:
+    user_id = current_user.user.id if hasattr(current_user, 'user') else current_user.get("id")
+    
+    if conv_response.data["user_id"] != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not your conversation"
@@ -264,7 +290,9 @@ async def chat(
             detail="Conversation not found"
         )
     
-    if conv_response.data["user_id"] != current_user["id"]:
+    user_id = current_user.user.id if hasattr(current_user, 'user') else current_user.get("id")
+    
+    if conv_response.data["user_id"] != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not your conversation"
@@ -296,7 +324,9 @@ async def chat_stream(
             detail="Conversation not found"
         )
     
-    if conv_response.data["user_id"] != current_user["id"]:
+    user_id = current_user.user.id if hasattr(current_user, 'user') else current_user.get("id")
+    
+    if conv_response.data["user_id"] != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not your conversation"
@@ -359,9 +389,11 @@ async def api_compare_properties(
     Compare plusieurs biens immobiliers.
     """
     # Vérifier l'appartenance à l'organisation
-    member_check = supabase.table("organization_members").select("id").eq(
+    user_id = current_user.user.id if hasattr(current_user, 'user') else current_user.get("id")
+    
+    member_check = supabase.table("organization_users").select("id").eq(
         "organization_id", str(organization_id)
-    ).eq("user_id", current_user["id"]).execute()
+    ).eq("user_id", user_id).execute()
     
     if not member_check.data:
         raise HTTPException(
@@ -384,9 +416,11 @@ async def api_generate_table(
     Génère un tableau à partir des données.
     """
     # Vérifier l'appartenance à l'organisation
-    member_check = supabase.table("organization_members").select("id").eq(
+    user_id = current_user.user.id if hasattr(current_user, 'user') else current_user.get("id")
+    
+    member_check = supabase.table("organization_users").select("id").eq(
         "organization_id", str(organization_id)
-    ).eq("user_id", current_user["id"]).execute()
+    ).eq("user_id", user_id).execute()
     
     if not member_check.data:
         raise HTTPException(
@@ -398,15 +432,3 @@ async def api_generate_table(
     return result
 
 
-# ============================================
-# Suggestions
-# ============================================
-
-@router.get("/suggestions", response_model=List[PromptSuggestion])
-async def get_suggestions(
-    current_user: dict = Depends(get_current_user),
-):
-    """
-    Récupère les suggestions de prompts.
-    """
-    return get_prompt_suggestions()

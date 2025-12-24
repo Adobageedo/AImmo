@@ -14,6 +14,7 @@ import { DOCUMENT_TYPE_LABELS, formatFileSize } from "@/lib/constants/document"
 import { documentService } from "@/lib/services/document-service"
 import { useAuthStore } from "@/lib/store/auth-store"
 import { useDocuments } from "@/lib/contexts/document-context"
+import { VectorizationStatusBadge } from "./VectorizationStatusBadge"
 
 interface DocumentListProps {
   documents: Document[]
@@ -81,18 +82,28 @@ export function DocumentList({ documents }: DocumentListProps) {
                 <span>•</span>
                 <span>{new Date(doc.created_at).toLocaleDateString("fr-FR")}</span>
               </div>
-              {doc.tags.length > 0 && (
-                <div className="flex gap-1 mt-1">
-                  {doc.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-block px-2 py-0.5 text-xs bg-secondary rounded"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <div className="flex items-center gap-2 mt-2">
+                {doc.vectorization_status && (
+                  <VectorizationStatusBadge
+                    status={doc.vectorization_status}
+                    numChunks={doc.num_chunks}
+                    error={doc.vectorization_error}
+                    showChunks={true}
+                  />
+                )}
+                {doc.tags.length > 0 && (
+                  <div className="flex gap-1">
+                    {doc.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-block px-2 py-0.5 text-xs bg-secondary rounded"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

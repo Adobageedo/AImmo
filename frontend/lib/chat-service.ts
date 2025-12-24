@@ -1,5 +1,6 @@
 import { apiClient } from "./api-client"
 import { SourceType } from "./types/document"
+import { useAuthStore } from "./store/auth-store"
 import {
     Conversation,
     ConversationWithMessages,
@@ -97,10 +98,10 @@ export async function sendMessage(request: ChatRequest): Promise<ChatResponse> {
 export async function* sendMessageStream(
     request: ChatRequest
 ): AsyncGenerator<StreamChunk, void, unknown> {
-    // Get auth token from localStorage or similar
-    const token = typeof window !== "undefined"
-        ? localStorage.getItem("auth_token")
-        : null
+    const token = useAuthStore.getState().accessToken
+
+    console.log("[STREAMING DEBUG] Token present:", !!token)
+    console.log("[STREAMING DEBUG] Request:", { conversationId: request.conversation_id, messageLength: request.message.length })
 
     const response = await fetch(`${API_BASE_URL}${BASE_URL}/chat/stream`, {
         method: "POST",
@@ -110,6 +111,9 @@ export async function* sendMessageStream(
         },
         body: JSON.stringify({ ...request, stream: true }),
     })
+
+    console.log("[STREAMING DEBUG] Response status:", response.status)
+    console.log("[STREAMING DEBUG] Response headers:", Object.fromEntries(response.headers.entries()))
 
     if (!response.ok) {
         yield { type: "error", error: `HTTP ${response.status}` }
@@ -124,12 +128,20 @@ export async function* sendMessageStream(
 
     const decoder = new TextDecoder()
     let buffer = ""
+    let chunkCount = 0
+
+    console.log("[STREAMING DEBUG] Starting to read stream...")
 
     while (true) {
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+            console.log("[STREAMING DEBUG] Stream done, total chunks:", chunkCount)
+            break
+        }
 
-        buffer += decoder.decode(value, { stream: true })
+        const decoded = decoder.decode(value, { stream: true })
+        console.log("[STREAMING DEBUG] Received raw data:", decoded.substring(0, 100))
+        buffer += decoded
 
         // Parse SSE events
         const lines = buffer.split("\n")
@@ -139,9 +151,11 @@ export async function* sendMessageStream(
             if (line.startsWith("data: ")) {
                 try {
                     const data = JSON.parse(line.slice(6))
+                    chunkCount++
+                    console.log("[STREAMING DEBUG] Chunk #" + chunkCount + ":", data.type)
                     yield data as StreamChunk
-                } catch {
-                    // Ignore parse errors
+                } catch (e) {
+                    console.error("[STREAMING DEBUG] Parse error:", e, "Line:", line)
                 }
             }
         }

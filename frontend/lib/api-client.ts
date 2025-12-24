@@ -16,6 +16,23 @@ export class ApiClient {
     this.token = null
   }
 
+  private getToken(): string | null {
+    if (this.token) return this.token
+    
+    if (typeof window !== 'undefined') {
+      const authStorage = localStorage.getItem('auth-storage')
+      if (authStorage) {
+        try {
+          const parsed = JSON.parse(authStorage)
+          return parsed.state?.accessToken || null
+        } catch {
+          return null
+        }
+      }
+    }
+    return null
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -25,8 +42,9 @@ export class ApiClient {
       ...(options.headers as Record<string, string>),
     }
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`
+    const token = this.getToken()
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
     }
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {

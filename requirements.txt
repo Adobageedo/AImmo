@@ -11,12 +11,11 @@ postgrest==0.17.2
 
 # Vectorization & RAG
 qdrant-client>=1.9.0,<2.0.0
-
-langchain-core>=0.1.52,<0.3
-langchain-community>=0.0.20,<0.1
 langchain-qdrant==0.1.0
-langchain-openai>=0.0.5,<0.1
-langchain-text-splitters>=0.0.1,<0.1
+langchain-core==0.1.23
+langchain-community==0.0.20
+langchain-openai==0.0.5
+langchain-text-splitters==0.0.1
 
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4

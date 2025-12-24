@@ -206,13 +206,13 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
      * Envoyer un message
      */
     const sendUserMessage = useCallback(
-        async (message: string, sendOptions: SendMessageOptions = {}) => {
-            if (!conversation) {
-                // Créer une conversation automatiquement
+        async (message: string, sendOptions: SendMessageOptions = {}, targetConversation?: Conversation) => {
+            const activeConversation = targetConversation || conversation
+            
+            if (!activeConversation) {
                 const newConv = await createNewConversation(message.slice(0, 50))
-                return sendUserMessage(message, sendOptions)
+                return sendUserMessage(message, sendOptions, newConv)
             }
-
             lastMessageRef.current = message
             setIsLoading(true)
             setError(null)
@@ -220,7 +220,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
             // Ajouter le message utilisateur localement
             const userMessage: Message = {
                 id: `temp-${Date.now()}`,
-                conversation_id: conversation.id,
+                conversation_id: activeConversation.id,
                 role: MessageRole.USER,
                 content: message,
                 citations: [],
@@ -232,7 +232,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
                 const chatMode = sendOptions.mode || mode
                 const useStream = sendOptions.stream ?? true
 
-                const request = buildChatRequest(conversation.id, message, {
+                const request = buildChatRequest(activeConversation.id, message, {
                     mode: chatMode,
                     sourceTypes: sendOptions.sourceTypes || activeSources,
                     documentIds: sendOptions.documentIds,
@@ -243,6 +243,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
                 if (useStream) {
                     // Streaming
+                    console.log("[STREAMING] Starting streaming...")
                     setIsStreaming(true)
                     setStreamingContent("")
                     abortControllerRef.current = new AbortController()
@@ -251,8 +252,10 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
                     const streamCitations: Citation[] = []
 
                     for await (const chunk of sendMessageStream(request)) {
+                        console.log("[STREAMING] Chunk received:", chunk.type, chunk.content?.substring(0, 50))
                         if (chunk.type === "content" && chunk.content) {
                             fullContent += chunk.content
+                            console.log("[STREAMING] Setting content, length:", fullContent.length)
                             setStreamingContent(fullContent)
                         } else if (chunk.type === "citation" && chunk.citation) {
                             streamCitations.push(chunk.citation)
@@ -260,7 +263,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
                             // Ajouter le message assistant
                             const assistantMessage: Message = {
                                 id: `msg-${Date.now()}`,
-                                conversation_id: conversation.id,
+                                conversation_id: activeConversation.id,
                                 role: MessageRole.ASSISTANT,
                                 content: fullContent,
                                 citations: streamCitations,
@@ -278,7 +281,6 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
                 } else {
                     // Non-streaming
                     const response = await sendMessage(request)
-
                     setMessages((prev) => [...prev, response.message])
                     setCitations((prev) => [...prev, ...response.citations])
                 }

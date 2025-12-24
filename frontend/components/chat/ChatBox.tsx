@@ -325,11 +325,6 @@ export function ChatBox({
 }: ChatBoxProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
-    // Scroll to bottom on new messages
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-    }, [messages, streamingContent])
-
     const isEmpty = messages.length === 0 && !isLoading && !isStreaming
 
     return (
@@ -373,8 +368,17 @@ export function ChatBox({
                             />
                         ))}
 
-                        {/* Streaming indicator */}
-                        {isStreaming && <StreamingIndicator content={streamingContent} />}
+                        {/* Streaming message */}
+                        {isStreaming && streamingContent && (
+                            <div className={`${styles["chat__message"]} ${styles["chat__message--assistant"]}`}>
+                                <div className={styles["chat__message-content"]}>
+                                    <div className={styles["chat__message-text"]}>
+                                        {streamingContent}
+                                        <span className={styles["chat__streaming-cursor"]}>▋</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Error */}
                         {error && <ErrorDisplay message={error} onRetry={onRetry} />}

@@ -47,6 +47,15 @@ export interface Document {
   uploaded_by: string
   created_at: string
   updated_at: string
+  
+  // Vectorization fields
+  vectorization_status?: "not_planned" | "planned" | "in_progress" | "vectorized" | "error" | "waiting"
+  vectorization_started_at?: string
+  vectorization_completed_at?: string
+  vectorization_error?: string
+  qdrant_collection_name?: string
+  num_chunks?: number
+  content_hash?: string
 }
 
 export interface DocumentUploadRequest {
