@@ -30,7 +30,7 @@ from app.schemas.chat import (
     ExportResponse,
     PromptSuggestion,
 )
-from app.services.chat_service import (
+from app.services.chat.chat_service import (
     process_chat,
     process_chat_stream,
     summarize_lease,

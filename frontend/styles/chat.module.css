@@ -174,19 +174,20 @@
 
 .chat__message--user .chat__message-content {
     background: var(--chat-bg-user);
-    color: white;
+    color: #000000;
     border-bottom-right-radius: 4px;
 }
 
 .chat__message--assistant .chat__message-content {
     background: var(--chat-bg-assistant);
-    color: inherit;
+    color: #000000;
     border-bottom-left-radius: 4px;
 }
 
 .chat__message-text {
     white-space: pre-wrap;
     word-wrap: break-word;
+    color: #000000;
 }
 
 .chat__message-text code {
@@ -281,12 +282,12 @@
 
 .chat__input-wrapper {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: flex-end;
     background: var(--chat-bg-secondary);
     border: 1px solid var(--chat-border);
     border-radius: var(--chat-radius);
-    padding: 8px 12px;
+    padding: 8px;
     transition: var(--chat-transition);
 }
 
@@ -389,17 +390,18 @@
 }
 
 .chat__citation {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 6px;
-    font-size: 0.75rem;
-    color: var(--chat-primary);
-    cursor: pointer;
-    transition: var(--chat-transition);
-    text-decoration: none;
+display: flex;
+align-items: center;
+gap: 6px;
+padding: 6px;
+border: none;
+background: rgba(99, 102, 241, 0.1);
+border-radius: 6px;
+font-size: 0.75rem;
+color: #000000;
+cursor: pointer;
+transition: var(--chat-transition);
+text-decoration: none;
 }
 
 .chat__citation:hover {

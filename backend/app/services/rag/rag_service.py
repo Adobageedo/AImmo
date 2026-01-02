@@ -702,7 +702,7 @@ async def search_chunks(
         # Recherche dans Qdrant
         qdrant_client = get_qdrant_client()
         
-        search_results = qdrant_client.search(
+        search_results = qdrant_client.search_points(
             collection_name=COLLECTION_NAME,
             query_vector=query_embedding,
             query_filter=Filter(must=must_conditions),

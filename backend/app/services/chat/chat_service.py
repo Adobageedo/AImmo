@@ -37,7 +37,7 @@ from app.schemas.chat import (
     PromptCategory,
 )
 from app.schemas.rag import SourceType, RAGSearchRequest, RAGSearchResult
-from app.services.rag_service import search_chunks
+from app.services.rag.rag_service import search_chunks
 
 
 # ============================================
@@ -160,8 +160,8 @@ async def process_chat(
         rag_response = await search_chunks(rag_request)
         rag_results = rag_response.results
         
-        if request.include_citations:
-            citations = create_citations_from_results(rag_results, request.max_citations)
+        # Toujours créer les citations si des résultats existent
+        citations = create_citations_from_results(rag_results, 5) if rag_results else []
     
     # 2. Mode RAG Only - retourner juste les résultats
     if request.mode == ChatMode.RAG_ONLY:
@@ -265,12 +265,12 @@ async def process_chat_stream(
         rag_response = await search_chunks(rag_request)
         rag_results = rag_response.results
         
-        if request.include_citations:
-            citations = create_citations_from_results(rag_results, request.max_citations)
-            
-            # Envoyer les citations d'abord
-            for citation in citations:
-                yield StreamChunk(type="citation", citation=citation)
+        # Toujours créer les citations si des résultats existent
+        citations = create_citations_from_results(rag_results, 5) if rag_results else []
+        
+        # Envoyer les citations d'abord
+        for citation in citations:
+            yield StreamChunk(type="citation", citation=citation)
     
     # 2. Mode RAG Only
     if request.mode == ChatMode.RAG_ONLY:
@@ -413,7 +413,7 @@ async def summarize_lease(
         organization_id=organization_id,
         query="bail contrat location loyer charges dates conditions",
         lease_ids=[request.lease_id],
-        source_types=[SourceType.LEASE, SourceType.DOCUMENT],
+        source_types=[SourceType.LEASES, SourceType.DOCUMENTS],
         limit=20,
         min_score=0.3,
     )

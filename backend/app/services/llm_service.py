@@ -81,23 +81,33 @@ class LLMService:
         """
         Get a JSON completion from the LLM.
         """
-        logger.info(f"DEBUG: Running JSON completion with model {model} and temperature {temperature} and max_tokens {max_tokens}...")
-        content = await self.get_completion(
-            prompt=prompt,
-            system_prompt=system_prompt,
-            model=model,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            response_format={"type": "json_object"}
-        )
-        if not content or not content.strip():
-            raise Exception("LLM returned an empty response")
-            
+        
         try:
-            return json.loads(content)
-        except json.JSONDecodeError as e:
-            # Log de l'erreur pour débugger
-            print(f"DEBUG: Failed to parse JSON. Content starts with: {content[:100]}...", flush=True)
-            raise Exception(f"Failed to parse LLM response as JSON: {str(e)}")
+            content = await self.get_completion(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                response_format={"type": "json_object"}
+            )
+            if not content or not content.strip():
+                logger.error("DEBUG: LLM returned an empty response")
+                raise Exception("LLM returned an empty response")
+            
+            try:
+                result = json.loads(content)
+                return result
+            except json.JSONDecodeError as e:
+                logger.error(f"DEBUG: Failed to parse JSON. Content starts with: {content[:100]}...")
+                logger.error(f"DEBUG: JSON error: {str(e)}")
+                raise Exception(f"Failed to parse LLM response as JSON: {str(e)}")
+                
+        except Exception as e:
+            logger.error(f"DEBUG: Error in get_json_completion: {str(e)}")
+            logger.error(f"DEBUG: Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"DEBUG: Traceback: {traceback.format_exc()}")
+            raise
 
 llm_service = LLMService()

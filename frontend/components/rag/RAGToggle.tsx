@@ -148,12 +148,12 @@ interface SourceBadgeProps {
 }
 
 const SOURCE_CONFIG: Record<SourceType, { label: string; icon: string }> = {
-    [SourceType.DOCUMENT]: { label: "Document", icon: "📄" },
-    [SourceType.LEASE]: { label: "Bail", icon: "📋" },
-    [SourceType.PROPERTY]: { label: "Propriété", icon: "🏠" },
-    [SourceType.TENANT]: { label: "Locataire", icon: "👤" },
+    [SourceType.DOCUMENTS]: { label: "Documents", icon: "📄" },
+    [SourceType.LEASES]: { label: "Baux", icon: "📋" },
+    [SourceType.PROPERTIES]: { label: "Propriétés", icon: "🏠" },
+    [SourceType.TENANTS]: { label: "Locataires", icon: "👤" },
     [SourceType.KPI]: { label: "KPI", icon: "📊" },
-    [SourceType.CONVERSATION]: { label: "Conversation", icon: "💬" },
+    [SourceType.OWNERS]: { label: "Propriétaires", icon: "👥" },
 }
 
 export function SourceBadge({

@@ -42,7 +42,6 @@ export default function PropertyDetailPage() {
         calculateYield,
         formatAddress,
     } = useProperties({ autoLoad: false })
-    console.log("Property:", property);
 
     // Use entity documents hook
     const { documents: propertyDocuments } = useEntityDocuments({

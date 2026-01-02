@@ -8,7 +8,7 @@ from typing import Optional
 from datetime import datetime, timedelta
 from app.core.security import get_current_user_id
 from app.core.supabase import get_supabase
-from app.services.jurisprudence_newsletter_service import jurisprudence_newsletter_service
+from app.services.newsletter.jurisprudence_newsletter_service import jurisprudence_newsletter_service
 import logging
 
 logger = logging.getLogger(__name__)

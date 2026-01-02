@@ -1,4 +1,7 @@
 // Chat Components Barrel Export
-export { ChatBox, ChatMessage, ChatInput, StreamingIndicator, ModeSelector, SuggestionsList } from "./ChatBox"
+export { ChatMessage, ChatInput, StreamingIndicator } from "./ChatBox"
 export { ChatSidebar } from "./ChatSidebar"
-export { ChatCanvas, CitationPanel } from "./ChatCanvas"
+export { ChatView } from "./ChatView"
+export { SuggestionsBar } from "./SuggestionsBar"
+export { MessageSources } from "./MessageSources"
+export { MessageArtifact } from "./MessageArtifact"

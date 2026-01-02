@@ -4,9 +4,9 @@ Complete jurisprudence newsletter service that orchestrates fetching, analysis, 
 
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
-from app.services.legifrance_service import legifrance_service
-from app.services.jurisprudence_ai_service import jurisprudence_ai_service
-from app.services.newsletter_generator_service import newsletter_generator_service
+from app.services.newsletter.legifrance_service import legifrance_service
+from app.services.newsletter.jurisprudence_ai_service import jurisprudence_ai_service
+from app.services.newsletter.newsletter_generator_service import newsletter_generator_service
 from app.core.supabase import get_supabase
 import logging
 

@@ -99,6 +99,8 @@ CREATE TABLE conversations (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE messages
+ADD updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
 -- Messages table
 CREATE TABLE messages (

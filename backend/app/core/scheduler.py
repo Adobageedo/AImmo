@@ -7,7 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from datetime import datetime
 from app.core.supabase import get_supabase
-from app.services.jurisprudence_newsletter_service import jurisprudence_newsletter_service
+from app.services.newsletter.jurisprudence_newsletter_service import jurisprudence_newsletter_service
 import logging
 
 logger = logging.getLogger(__name__)

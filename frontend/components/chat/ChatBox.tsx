@@ -1,12 +1,13 @@
 "use client"
 
 import React, { useRef, useEffect, useState, useCallback } from "react"
-import { Message, Citation, ChatMode } from "@/lib/types/chat"
-import { SourceType } from "@/lib/types/document"
-import styles from "@/styles/chat.module.css"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { Message, Citation } from "@/lib/types/chat"
+import { Send, Square, Copy, Check } from "lucide-react"
 
 /**
- * ChatBox Component - Phase 5 Chat MVP
+ * ChatBox Component - Simplifié
  * Interface type ChatGPT avec streaming
  */
 
@@ -21,45 +22,144 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, onCitationClick }: ChatMessageProps) {
     const isUser = message.role === "user"
+    const [copied, setCopied] = useState(false)
+    const [isHovered, setIsHovered] = useState(false)
+
+    const handleCopy = async () => {
+        await navigator.clipboard.writeText(message.content)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
 
     return (
-        <div
-            className={`${styles["chat__message"]} ${isUser ? styles["chat__message--user"] : styles["chat__message--assistant"]
-                }`}
-        >
-            <div
-                className={`${styles["chat__message-avatar"]} ${isUser
-                        ? styles["chat__message-avatar--user"]
-                        : styles["chat__message-avatar--assistant"]
-                    }`}
+        <div className={`flex gap-3 mb-4 ${isUser ? "justify-end" : "justify-start"}`}>
+            {/* Avatar - only for assistant */}
+            {!isUser && (
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold shadow-sm">
+                    AI
+                </div>
+            )}
+            
+            {/* Message bubble */}
+            <div 
+                className="relative group max-w-[75%]"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
             >
-                {isUser ? "👤" : "🤖"}
-            </div>
-            <div className={styles["chat__message-content"]}>
-                <div className={styles["chat__message-text"]}>{message.content}</div>
-
-                {/* Citations */}
-                {message.citations && message.citations.length > 0 && (
-                    <div className={styles["chat__citations"]}>
-                        {message.citations.map((citation) => (
-                            <button
-                                key={citation.id}
-                                className={styles["chat__citation"]}
-                                onClick={() => onCitationClick?.(citation)}
-                                type="button"
+                <div className={`rounded-2xl px-4 py-3 shadow-sm ${
+                    isUser 
+                        ? "bg-indigo-500 text-white rounded-br-sm" 
+                        : "bg-white border border-gray-200 text-gray-900 rounded-bl-sm"
+                }`}>
+                    <div className="prose prose-sm max-w-none text-sm leading-relaxed">
+                        {isUser ? (
+                            <div className="whitespace-pre-wrap break-words text-white font-medium leading-relaxed">{message.content}</div>
+                        ) : (
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    // Style pour les titres
+                                    h1: ({children}) => <h1 className="text-lg font-bold text-gray-900 mb-2 mt-1">{children}</h1>,
+                                    h2: ({children}) => <h2 className="text-base font-semibold text-gray-900 mb-2 mt-2">{children}</h2>,
+                                    h3: ({children}) => <h3 className="text-sm font-semibold text-gray-900 mb-1 mt-2">{children}</h3>,
+                                    
+                                    // Style pour les paragraphes
+                                    p: ({children}) => <p className="mb-3 last:mb-0 text-gray-800">{children}</p>,
+                                    
+                                    // Style pour le gras
+                                    strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                                    
+                                    // Style pour l'italique
+                                    em: ({children}) => <em className="italic text-gray-800">{children}</em>,
+                                    
+                                    // Style pour les listes
+                                    ul: ({children}) => <ul className="list-disc list-inside mb-3 space-y-1 text-gray-800">{children}</ul>,
+                                    ol: ({children}) => <ol className="list-decimal list-inside mb-3 space-y-1 text-gray-800">{children}</ol>,
+                                    li: ({children}) => <li className="text-gray-800">{children}</li>,
+                                    
+                                    // Style pour les liens
+                                    a: ({href, children}) => (
+                                        <a 
+                                            href={href} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-indigo-600 hover:text-indigo-800 underline font-medium"
+                                        >
+                                            {children}
+                                        </a>
+                                    ),
+                                    
+                                    // Style pour le code inline
+                                    code: ({children}) => (
+                                        <code className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs font-mono">
+                                            {children}
+                                        </code>
+                                    ),
+                                    
+                                    // Style pour les blocs de code
+                                    pre: ({children}) => (
+                                        <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto mb-3 text-xs">
+                                            {children}
+                                        </pre>
+                                    ),
+                                    
+                                    // Style pour les blocs de citation
+                                    blockquote: ({children}) => (
+                                        <blockquote className="border-l-4 border-indigo-300 pl-4 py-2 mb-3 bg-indigo-50 rounded-r text-gray-700 italic">
+                                            {children}
+                                        </blockquote>
+                                    ),
+                                    
+                                    // Style pour les tableaux
+                                    table: ({children}) => (
+                                        <div className="overflow-x-auto mb-3">
+                                            <table className="min-w-full border border-gray-200 rounded-lg">
+                                                {children}
+                                            </table>
+                                        </div>
+                                    ),
+                                    thead: ({children}) => <thead className="bg-gray-50">{children}</thead>,
+                                    th: ({children}) => <th className="px-3 py-2 text-left text-xs font-medium text-gray-900 border-b border-gray-200">{children}</th>,
+                                    td: ({children}) => <td className="px-3 py-2 text-xs text-gray-700 border-b border-gray-100">{children}</td>,
+                                    
+                                    // Style pour les séparateurs
+                                    hr: () => <hr className="border-gray-200 my-3" />,
+                                }}
                             >
-                                <span className={styles["chat__citation-icon"]}>📄</span>
-                                <span className={styles["chat__citation-title"]}>
-                                    {citation.document_title}
-                                </span>
-                                <span className={styles["chat__citation-score"]}>
-                                    {Math.round(citation.relevance_score * 100)}%
-                                </span>
-                            </button>
-                        ))}
+                                {message.content}
+                            </ReactMarkdown>
+                        )}
                     </div>
+                </div>
+
+                {/* Copy button - only for assistant messages, visible on hover */}
+                {!isUser && (
+                    <button
+                        onClick={handleCopy}
+                        className={`absolute -right-10 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-all ${
+                            isHovered ? "opacity-100" : "opacity-0"
+                        }`}
+                        title="Copier le message"
+                    >
+                        {copied ? (
+                            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        ) : (
+                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        )}
+                    </button>
                 )}
             </div>
+
+            {/* Avatar - only for user */}
+            {isUser && (
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-semibold shadow-sm">
+                    U
+                </div>
+            )}
         </div>
     )
 }
@@ -74,25 +174,83 @@ interface StreamingIndicatorProps {
 
 export function StreamingIndicator({ content }: StreamingIndicatorProps) {
     return (
-        <div className={`${styles["chat__message"]} ${styles["chat__message--assistant"]}`}>
-            <div
-                className={`${styles["chat__message-avatar"]} ${styles["chat__message-avatar--assistant"]}`}
-            >
-                🤖
+        <div className="flex gap-3 mb-4 justify-start">
+            {/* Avatar */}
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold shadow-sm">
+                AI
             </div>
-            <div className={styles["chat__message-content"]}>
-                {content ? (
-                    <div className={styles["chat__message-text"]}>{content}</div>
-                ) : (
-                    <div className={styles["chat__streaming"]}>
-                        <div className={styles["chat__streaming-dots"]}>
-                            <span className={styles["chat__streaming-dot"]} />
-                            <span className={styles["chat__streaming-dot"]} />
-                            <span className={styles["chat__streaming-dot"]} />
+            
+            {/* Message bubble */}
+            <div className="max-w-[75%]">
+                <div className="rounded-2xl rounded-bl-sm px-4 py-3 bg-white border border-gray-200 shadow-sm">
+                    {content ? (
+                        <div className="prose prose-sm max-w-none text-sm leading-relaxed">
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    // Réutiliser les mêmes styles que pour les messages normaux
+                                    h1: ({children}) => <h1 className="text-lg font-bold text-gray-900 mb-2 mt-1">{children}</h1>,
+                                    h2: ({children}) => <h2 className="text-base font-semibold text-gray-900 mb-2 mt-2">{children}</h2>,
+                                    h3: ({children}) => <h3 className="text-sm font-semibold text-gray-900 mb-1 mt-2">{children}</h3>,
+                                    p: ({children}) => <p className="mb-3 last:mb-0 text-gray-800">{children}</p>,
+                                    strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                                    em: ({children}) => <em className="italic text-gray-800">{children}</em>,
+                                    ul: ({children}) => <ul className="list-disc list-inside mb-3 space-y-1 text-gray-800">{children}</ul>,
+                                    ol: ({children}) => <ol className="list-decimal list-inside mb-3 space-y-1 text-gray-800">{children}</ol>,
+                                    li: ({children}) => <li className="text-gray-800">{children}</li>,
+                                    a: ({href, children}) => (
+                                        <a 
+                                            href={href} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-indigo-600 hover:text-indigo-800 underline font-medium"
+                                        >
+                                            {children}
+                                        </a>
+                                    ),
+                                    code: ({children}) => (
+                                        <code className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs font-mono">
+                                            {children}
+                                        </code>
+                                    ),
+                                    pre: ({children}) => (
+                                        <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto mb-3 text-xs">
+                                            {children}
+                                        </pre>
+                                    ),
+                                    blockquote: ({children}) => (
+                                        <blockquote className="border-l-4 border-indigo-300 pl-4 py-2 mb-3 bg-indigo-50 rounded-r text-gray-700 italic">
+                                            {children}
+                                        </blockquote>
+                                    ),
+                                    table: ({children}) => (
+                                        <div className="overflow-x-auto mb-3">
+                                            <table className="min-w-full border border-gray-200 rounded-lg">
+                                                {children}
+                                            </table>
+                                        </div>
+                                    ),
+                                    thead: ({children}) => <thead className="bg-gray-50">{children}</thead>,
+                                    th: ({children}) => <th className="px-3 py-2 text-left text-xs font-medium text-gray-900 border-b border-gray-200">{children}</th>,
+                                    td: ({children}) => <td className="px-3 py-2 text-xs text-gray-700 border-b border-gray-100">{children}</td>,
+                                    hr: () => <hr className="border-gray-200 my-3" />,
+                                }}
+                            >
+                                {content}
+                            </ReactMarkdown>
+                            <span className="inline-block w-1 h-4 bg-indigo-500 ml-1 animate-pulse" />
                         </div>
-                        <span className={styles["chat__streaming-text"]}>Réflexion en cours...</span>
-                    </div>
-                )}
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <div className="flex space-x-1">
+                                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                            </div>
+                            <span className="text-gray-500 text-sm">Réflexion...</span>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )
@@ -104,20 +262,22 @@ export function StreamingIndicator({ content }: StreamingIndicatorProps) {
 
 interface ChatInputProps {
     onSend: (message: string) => void
+    onStop?: () => void
     isLoading?: boolean
     isStreaming?: boolean
-    onStop?: () => void
-    placeholder?: string
     disabled?: boolean
+    placeholder?: string
+    ragSettingsButton?: React.ReactNode
 }
 
 export function ChatInput({
     onSend,
+    onStop,
     isLoading = false,
     isStreaming = false,
-    onStop,
     placeholder = "Posez votre question...",
     disabled = false,
+    ragSettingsButton,
 }: ChatInputProps) {
     const [value, setValue] = useState("")
     const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -145,259 +305,63 @@ export function ChatInput({
     }
 
     return (
-        <div className={styles["chat__input"]}>
-            <div className={styles["chat__input-wrapper"]}>
-                <textarea
-                    ref={textareaRef}
-                    className={styles["chat__textarea"]}
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={placeholder}
-                    disabled={disabled || isLoading}
-                    rows={1}
-                />
-                <div className={styles["chat__input-actions"]}>
+        <div className="border-t bg-white">
+            <div className="max-w-4xl mx-auto px-4 py-4">
+                <div className="flex items-center justify-center gap-3 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+                    {/* Bouton RAG Settings */}
+                    {ragSettingsButton && (
+                        <div className="flex-shrink-0">
+                            {ragSettingsButton}
+                        </div>
+                    )}
+
+                    {/* Zone de texte principale */}
+                    <div className="flex-1 flex items-center">
+                        <textarea
+                            ref={textareaRef}
+                            className="w-full resize-none border-0 bg-transparent placeholder:text-gray-400 focus:outline-none text-sm leading-6 min-h-[24px] max-h-[120px]"
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={placeholder}
+                            disabled={disabled || isLoading}
+                            rows={1}
+                        />
+                    </div>
+
+                    {/* Bouton d'envoi/stop */}
                     {isStreaming ? (
                         <button
                             type="button"
-                            className={`${styles["chat__button"]} ${styles["chat__button--stop"]}`}
                             onClick={onStop}
+                            className="flex-shrink-0 h-8 w-8 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
+                            title="Arrêter"
                         >
-                            ⏹️ Stop
+                            <Square className="h-4 w-4" />
                         </button>
                     ) : (
                         <button
                             type="button"
-                            className={`${styles["chat__button"]} ${styles["chat__button--send"]}`}
                             onClick={handleSubmit}
                             disabled={!value.trim() || isLoading || disabled}
+                            className="flex-shrink-0 h-8 w-8 flex items-center justify-center rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Envoyer"
                         >
-                            {isLoading ? "..." : "Envoyer"} ➤
+                            <Send className="h-4 w-4" />
                         </button>
                     )}
                 </div>
-            </div>
-        </div>
-    )
-}
 
-// ============================================
-// Suggestions
-// ============================================
-
-interface SuggestionProps {
-    icon: string
-    title: string
-    prompt: string
-    onClick: () => void
-}
-
-export function Suggestion({ icon, title, prompt, onClick }: SuggestionProps) {
-    return (
-        <button type="button" className={styles["chat__suggestion"]} onClick={onClick}>
-            <span className={styles["chat__suggestion-icon"]}>{icon}</span>
-            <div className={styles["chat__suggestion-content"]}>
-                <div className={styles["chat__suggestion-title"]}>{title}</div>
-                <div className={styles["chat__suggestion-prompt"]}>{prompt}</div>
-            </div>
-        </button>
-    )
-}
-
-interface SuggestionsListProps {
-    suggestions: Array<{ id: string; icon: string; title: string; prompt: string }>
-    onSelect: (prompt: string) => void
-}
-
-export function SuggestionsList({ suggestions, onSelect }: SuggestionsListProps) {
-    return (
-        <div className={styles["chat__suggestions"]}>
-            {suggestions.map((suggestion) => (
-                <Suggestion
-                    key={suggestion.id}
-                    icon={suggestion.icon}
-                    title={suggestion.title}
-                    prompt={suggestion.prompt}
-                    onClick={() => onSelect(suggestion.prompt)}
-                />
-            ))}
-        </div>
-    )
-}
-
-// ============================================
-// Mode Selector
-// ============================================
-
-interface ModeSelectorProps {
-    mode: ChatMode
-    onModeChange: (mode: ChatMode) => void
-}
-
-export function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
-    const modes = [
-        { value: ChatMode.RAG_ENHANCED, label: "RAG + IA" },
-        { value: ChatMode.RAG_ONLY, label: "RAG seul" },
-        { value: ChatMode.NORMAL, label: "IA seule" },
-    ]
-
-    return (
-        <div className={styles["chat__mode-selector"]}>
-            {modes.map((m) => (
-                <button
-                    key={m.value}
-                    type="button"
-                    className={`${styles["chat__mode-option"]} ${mode === m.value ? styles["chat__mode-option--active"] : ""
-                        }`}
-                    onClick={() => onModeChange(m.value)}
-                >
-                    {m.label}
-                </button>
-            ))}
-        </div>
-    )
-}
-
-// ============================================
-// Error Display
-// ============================================
-
-interface ErrorDisplayProps {
-    message: string
-    onRetry?: () => void
-}
-
-export function ErrorDisplay({ message, onRetry }: ErrorDisplayProps) {
-    return (
-        <div className={styles["chat__error"]}>
-            <span className={styles["chat__error-icon"]}>⚠️</span>
-            <span className={styles["chat__error-message"]}>{message}</span>
-            {onRetry && (
-                <button type="button" className={styles["chat__error-retry"]} onClick={onRetry}>
-                    Réessayer
-                </button>
-            )}
-        </div>
-    )
-}
-
-// ============================================
-// Main ChatBox Component
-// ============================================
-
-interface ChatBoxProps {
-    messages: Message[]
-    isLoading?: boolean
-    isStreaming?: boolean
-    streamingContent?: string
-    error?: string | null
-    suggestions?: Array<{ id: string; icon: string; title: string; prompt: string }>
-    mode?: ChatMode
-    onSendMessage: (message: string) => void
-    onModeChange?: (mode: ChatMode) => void
-    onStopStreaming?: () => void
-    onRetry?: () => void
-    onCitationClick?: (citation: Citation) => void
-    showHeader?: boolean
-    title?: string
-    darkMode?: boolean
-    className?: string
-}
-
-export function ChatBox({
-    messages,
-    isLoading = false,
-    isStreaming = false,
-    streamingContent = "",
-    error = null,
-    suggestions = [],
-    mode = ChatMode.RAG_ENHANCED,
-    onSendMessage,
-    onModeChange,
-    onStopStreaming,
-    onRetry,
-    onCitationClick,
-    showHeader = true,
-    title = "Assistant AImmo",
-    darkMode = false,
-    className = "",
-}: ChatBoxProps) {
-    const messagesEndRef = useRef<HTMLDivElement>(null)
-
-    const isEmpty = messages.length === 0 && !isLoading && !isStreaming
-
-    return (
-        <div className={`${styles["chat"]} ${darkMode ? styles["chat--dark"] : ""} ${className}`}>
-            {/* Header */}
-            {showHeader && (
-                <div className={styles["chat__header"]}>
-                    <div className={styles["chat__header-left"]}>
-                        <h2 className={styles["chat__title"]}>{title}</h2>
+                {/* Indicateur d'état */}
+                {(isLoading || isStreaming) && (
+                    <div className="flex items-center justify-center pt-2">
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></div>
+                            {isStreaming ? "Génération en cours..." : "Envoi..."}
+                        </div>
                     </div>
-                    <div className={styles["chat__header-right"]}>
-                        {onModeChange && <ModeSelector mode={mode} onModeChange={onModeChange} />}
-                    </div>
-                </div>
-            )}
-
-            {/* Messages Area */}
-            <div
-                className={`${styles["chat__messages"]} ${isEmpty ? styles["chat__messages--empty"] : ""
-                    }`}
-            >
-                {isEmpty ? (
-                    <>
-                        <div className={styles["chat__empty-icon"]}>💬</div>
-                        <h3 className={styles["chat__empty-title"]}>Comment puis-je vous aider ?</h3>
-                        <p className={styles["chat__empty-text"]}>
-                            Posez une question sur vos baux, biens immobiliers ou documents. Je peux
-                            résumer, comparer et générer des rapports.
-                        </p>
-                        {suggestions.length > 0 && (
-                            <SuggestionsList suggestions={suggestions} onSelect={onSendMessage} />
-                        )}
-                    </>
-                ) : (
-                    <>
-                        {messages.map((message) => (
-                            <ChatMessage
-                                key={message.id}
-                                message={message}
-                                onCitationClick={onCitationClick}
-                            />
-                        ))}
-
-                        {/* Streaming message */}
-                        {isStreaming && streamingContent && (
-                            <div className={`${styles["chat__message"]} ${styles["chat__message--assistant"]}`}>
-                                <div className={styles["chat__message-content"]}>
-                                    <div className={styles["chat__message-text"]}>
-                                        {streamingContent}
-                                        <span className={styles["chat__streaming-cursor"]}>▋</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Error */}
-                        {error && <ErrorDisplay message={error} onRetry={onRetry} />}
-
-                        <div ref={messagesEndRef} />
-                    </>
                 )}
             </div>
-
-            {/* Input */}
-            <ChatInput
-                onSend={onSendMessage}
-                isLoading={isLoading}
-                isStreaming={isStreaming}
-                onStop={onStopStreaming}
-                disabled={!!error}
-            />
         </div>
     )
 }
-
-export default ChatBox

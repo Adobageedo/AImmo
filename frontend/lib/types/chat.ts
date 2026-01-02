@@ -36,7 +36,6 @@ export interface Citation {
     content_preview: string
     page_number?: number
     source_type: SourceType
-    relevance_score: number
     url?: string
 }
 
@@ -85,13 +84,12 @@ export interface ChatRequest {
     conversation_id: string
     message: string
     mode: ChatMode
-    source_types?: SourceType[]
+    requested_sources?: SourceType[]  // Renommé de source_types
     document_ids?: string[]
     lease_ids?: string[]
     property_ids?: string[]
-    include_citations?: boolean
-    max_citations?: number
     stream?: boolean
+    // include_citations et max_citations supprimés - gérés par le backend
 }
 
 // Réponse de chat
@@ -221,4 +219,15 @@ export interface ExportResponse {
     file_name: string
     format: ExportFormat
     expires_at: string
+}
+
+// Artifact (Canvas)
+export interface Artifact {
+    id: string
+    type: 'table' | 'document' | 'chart' | 'export'
+    title: string
+    content: any
+    downloadUrl?: string
+    metadata?: Record<string, any>
+    created_at?: string
 }

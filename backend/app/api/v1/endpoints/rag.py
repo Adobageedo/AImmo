@@ -22,7 +22,7 @@ from app.schemas.rag import (
     RAGConfig,
     RAGConfigUpdate,
 )
-from app.services.rag_service import (
+from app.services.rag.rag_service import (
     index_document,
     search_chunks,
     set_document_exclusion,

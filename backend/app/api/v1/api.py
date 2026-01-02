@@ -18,10 +18,17 @@ from app.api.v1.endpoints import (
     newsletters,
     jurisprudence,
     vectorization,
+    # Chat SDK endpoints
+    chat_sdk,
+    rag_sdk,
+    canvas_sdk,
+    export_sdk,
+    suggestions_sdk,
 )
 
 api_router = APIRouter()
 
+# Legacy endpoints
 api_router.include_router(health.router, tags=["health"])
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(organizations.router, prefix="/organizations", tags=["organizations"])
@@ -41,4 +48,43 @@ api_router.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 api_router.include_router(newsletters.router, prefix="/newsletters", tags=["newsletters"])
 # api_router.include_router(jurisprudence.router, prefix="/jurisprudence", tags=["jurisprudence"])
 # api_router.include_router(vectorization.router, prefix="/vectorization", tags=["vectorization"])
+
+# ============================================
+# CHAT SDK ENDPOINTS - Architecture complète
+# ============================================
+
+# Chat & Streaming SSE
+api_router.include_router(
+    chat_sdk.router,
+    prefix="/sdk/chat",
+    tags=["chat-sdk"]
+)
+
+# RAG Multi-sources
+api_router.include_router(
+    rag_sdk.router,
+    prefix="/sdk/rag",
+    tags=["rag-sdk"]
+)
+
+# Canvas & Artifacts
+api_router.include_router(
+    canvas_sdk.router,
+    prefix="/sdk/canvas",
+    tags=["canvas-sdk"]
+)
+
+# Exports (Excel, PDF)
+api_router.include_router(
+    export_sdk.router,
+    prefix="/sdk/export",
+    tags=["export-sdk"]
+)
+
+# Suggestions contextuelles
+api_router.include_router(
+    suggestions_sdk.router,
+    prefix="/sdk/suggestions",
+    tags=["suggestions-sdk"]
+)
 

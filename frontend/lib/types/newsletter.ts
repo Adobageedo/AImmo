@@ -34,3 +34,33 @@ export interface NewsletterSubscription {
     created_at: string
     updated_at: string
 }
+
+export interface NewsletterFilters {
+    categories?: string[]
+    statuses?: string[]
+    from_date?: string
+    to_date?: string
+    search?: string
+}
+
+export interface NewsletterPreview {
+    id: string
+    slug: string
+    title: string
+    description: string | null
+    theme: string
+    frequency: string
+    is_active: boolean
+    is_user_subscribed?: boolean
+}
+
+export interface SubscriptionUpdateRequest {
+    is_subscribed: boolean
+    unsubscribe_reason?: string
+}
+
+export interface SubscriberStats {
+    total_subscribers: number
+    active_subscribers: number
+    unsubscribed: number
+}

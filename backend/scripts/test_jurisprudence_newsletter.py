@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.core.supabase import get_supabase
-from app.services.jurisprudence_newsletter_service import jurisprudence_newsletter_service
+from app.services.newsletter.jurisprudence_newsletter_service import jurisprudence_newsletter_service
 import logging
 
 logging.basicConfig(

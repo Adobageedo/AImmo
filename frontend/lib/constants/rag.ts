@@ -5,25 +5,25 @@
 import { SourceType } from "../types/document";
 
 export const RAG_SOURCE_TYPES = {
-  [SourceType.DOCUMENT]: {
+  [SourceType.DOCUMENTS]: {
     label: "Documents",
     description: "Vos documents uploadés",
     icon: "📄",
     color: "blue",
   },
-  [SourceType.LEASE]: {
+  [SourceType.LEASES]: {
     label: "Baux",
     description: "Contrats de location",
     icon: "📋",
     color: "purple",
   },
-  [SourceType.PROPERTY]: {
+  [SourceType.PROPERTIES]: {
     label: "Propriétés",
     description: "Informations sur les biens",
     icon: "🏠",
     color: "green",
   },
-  [SourceType.TENANT]: {
+  [SourceType.TENANTS]: {
     label: "Locataires",
     description: "Informations sur les locataires",
     icon: "👤",
@@ -35,23 +35,19 @@ export const RAG_SOURCE_TYPES = {
     icon: "📊",
     color: "yellow",
   },
-  [SourceType.CONVERSATION]: {
-    label: "Conversations",
-    description: "Historique des conversations",
-    icon: "💬",
-    color: "gray",
+  [SourceType.OWNERS]: {
+    label: "Propriétaires",
+    description: "Informations sur les propriétaires",
+    icon: "👥",
+    color: "indigo",
   },
 };
 
 export const DEFAULT_RAG_OPTIONS = {
-  enabled: true,
+  enabled: false,  // RAG désactivé par défaut
   strict_mode: false,
   max_results: 10,
-  sources: [
-    SourceType.DOCUMENT,
-    SourceType.LEASE,
-    SourceType.PROPERTY,
-  ],
+  sources: [],  // Aucune source sélectionnée par défaut
 };
 
 export const RAG_STRICT_MODE_INFO = {

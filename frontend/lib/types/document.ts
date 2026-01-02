@@ -7,14 +7,14 @@ export enum DocumentType {
   AUTRE = "autre",
 }
 
-// RAG Source Types - Generic for future extensibility
+// RAG Source Types - Doit correspondre exactement au backend
 export enum SourceType {
-  DOCUMENT = "document",
-  LEASE = "lease",
-  PROPERTY = "property",
-  TENANT = "tenant",
+  DOCUMENTS = "documents",    // ✅ Correspond au backend
+  LEASES = "leases",          // ✅ Correspond au backend
+  PROPERTIES = "properties",  // ✅ Correspond au backend
+  TENANTS = "tenants",
   KPI = "kpi",
-  CONVERSATION = "conversation",
+  OWNERS = "owners",
 }
 
 export enum FileType {

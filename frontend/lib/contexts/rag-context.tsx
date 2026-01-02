@@ -58,12 +58,12 @@ const DEFAULT_SEARCH_CONFIG: SearchConfig = {
 }
 
 const DEFAULT_SOURCE_VISIBILITY: Record<SourceType, boolean> = {
-    [SourceType.DOCUMENT]: true,
-    [SourceType.LEASE]: true,
-    [SourceType.PROPERTY]: true,
-    [SourceType.TENANT]: true,
+    [SourceType.DOCUMENTS]: true,
+    [SourceType.LEASES]: true,
+    [SourceType.PROPERTIES]: true,
+    [SourceType.TENANTS]: true,
     [SourceType.KPI]: true,
-    [SourceType.CONVERSATION]: true,
+    [SourceType.OWNERS]: true,
 }
 
 interface RAGProviderProps {
@@ -289,12 +289,12 @@ export function RAGProvider({ children, initialConfig }: RAGProviderProps) {
      */
     const sourceToggles = useMemo((): SourceToggle[] => {
         const sourceLabels: Record<SourceType, { label: string; icon: string }> = {
-            [SourceType.DOCUMENT]: { label: "Documents", icon: "📄" },
-            [SourceType.LEASE]: { label: "Baux", icon: "📋" },
-            [SourceType.PROPERTY]: { label: "Propriétés", icon: "🏠" },
-            [SourceType.TENANT]: { label: "Locataires", icon: "👤" },
+            [SourceType.DOCUMENTS]: { label: "Documents", icon: "📄" },
+            [SourceType.LEASES]: { label: "Baux", icon: "📋" },
+            [SourceType.PROPERTIES]: { label: "Propriétés", icon: "🏠" },
+            [SourceType.TENANTS]: { label: "Locataires", icon: "👤" },
             [SourceType.KPI]: { label: "KPIs", icon: "📊" },
-            [SourceType.CONVERSATION]: { label: "Conversations", icon: "💬" },
+            [SourceType.OWNERS]: { label: "Propriétaires", icon: "👥" },
         }
 
         return Object.values(SourceType).map((source) => ({

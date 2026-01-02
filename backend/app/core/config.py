@@ -28,9 +28,15 @@ class Settings(BaseSettings):
     
     # LLM Settings
     OPENAI_API_KEY: str = ""
-    DEFAULT_LLM_MODEL: str = "gpt-4.1-nano"
-    DEFAULT_LLM_TEMPERATURE: float = 0.1
-    DEFAULT_LLM_MAX_TOKENS: int = 4000
+    DEFAULT_LLM_MODEL: str = "gpt-4-turbo-preview"
+    DEFAULT_LLM_TEMPERATURE: float = 0.7
+    DEFAULT_LLM_MAX_TOKENS: int = 2000
+    
+    # Chat SDK Settings
+    QDRANT_COLLECTION: str = "aimmo_documents"
+    MAX_CONVERSATION_HISTORY: int = 50
+    CHUNK_SIZE: int = 1000
+    CHUNK_OVERLAP: int = 200
     
     # Legifrance API Settings
     LEGIFRANCE_CLIENT_ID: str = ""

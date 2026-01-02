@@ -72,14 +72,12 @@ function DocumentsContent() {
 
   // Handle Lease Upload & Parsing
   const handleLeaseUploadSuccess = async (documentId: string) => {
-    console.log("Démarrage de l'analyse du bail...")
     await startParsing(documentId)
   }
 
   const handleValidation = async (createEntities: boolean) => {
     const result = await validateAndComplete(createEntities)
     if (result) {
-      console.log("Bail validé et entités créées avec succès !")
       resetParsing()
       refreshDocuments()
     } else {
