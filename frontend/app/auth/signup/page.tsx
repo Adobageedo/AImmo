@@ -1,144 +1,129 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AuthCard, FormField, AuthError } from "@/components/auth"
+import { useAuth } from "@/lib/hooks"
+import { Loader2, CheckCircle } from "lucide-react"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [organizationName, setOrganizationName] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const router = useRouter()
+  const { signup, loading, error, clearError } = useAuth()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
+    clearError()
 
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          organization_name: organizationName || "Mon Organisation",
-        }),
-      })
+    const result = await signup({
+      email,
+      password,
+      organizationName: organizationName || undefined,
+    })
 
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.detail || "Erreur lors de l'inscription")
-      }
-
+    if (result) {
       setSuccess(true)
-    } catch (err: any) {
-      setError(err.message || "Une erreur est survenue")
-    } finally {
-      setLoading(false)
     }
   }
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Vérifiez votre email</CardTitle>
-            <CardDescription>
-              Un email de confirmation a été envoyé à {email}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Cliquez sur le lien dans l&apos;email pour activer votre compte.
-            </p>
-            <Link href="/auth/login">
-              <Button className="w-full">Retour à la connexion</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <AuthCard
+        title="Vérifiez votre email"
+        description={`Un email de confirmation a été envoyé à ${email}`}
+      >
+        <div className="space-y-6 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-500">
+            Cliquez sur le lien dans l&apos;email pour activer votre compte.
+          </p>
+
+          <Link href="/auth/login">
+            <Button className="w-full h-11 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+              Retour à la connexion
+            </Button>
+          </Link>
+        </div>
+      </AuthCard>
     )
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Créer un compte</CardTitle>
-          <CardDescription>
-            Créez votre compte AImmo gratuitement
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
-            {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-                {error}
-              </div>
-            )}
-            <div className="space-y-2">
-              <label htmlFor="organizationName" className="text-sm font-medium">
-                Nom de votre organisation
-              </label>
-              <Input
-                id="organizationName"
-                type="text"
-                placeholder="Mon Agence Immobilière"
-                value={organizationName}
-                onChange={(e) => setOrganizationName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="vous@exemple.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Mot de passe
-              </label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-              <p className="text-xs text-muted-foreground">
-                Minimum 6 caractères
-              </p>
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Création..." : "Créer un compte"}
-            </Button>
-            <div className="text-center text-sm">
-              <span className="text-muted-foreground">Déjà un compte ? </span>
-              <Link href="/auth/login" className="text-primary hover:underline">
-                Se connecter
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthCard
+      title="Créer un compte"
+      description="Créez votre compte AImmo gratuitement"
+    >
+      <form onSubmit={handleSignup} className="space-y-4">
+        <AuthError message={error} />
+
+        <FormField
+          id="organizationName"
+          label="Nom de votre organisation"
+          type="text"
+          placeholder="Mon Agence Immobilière"
+          value={organizationName}
+          onChange={setOrganizationName}
+          disabled={loading}
+          hint="Optionnel - vous pourrez le modifier plus tard"
+        />
+
+        <FormField
+          id="email"
+          label="Email"
+          type="email"
+          placeholder="vous@exemple.com"
+          value={email}
+          onChange={setEmail}
+          required
+          disabled={loading}
+        />
+
+        <FormField
+          id="password"
+          label="Mot de passe"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={setPassword}
+          required
+          minLength={6}
+          disabled={loading}
+          hint="Minimum 6 caractères"
+        />
+
+        <Button
+          type="submit"
+          className="w-full h-11 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium transition-all duration-200"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Création...
+            </>
+          ) : (
+            "Créer un compte"
+          )}
+        </Button>
+
+        <div className="text-center text-sm pt-4 border-t border-gray-100">
+          <span className="text-gray-500">Déjà un compte ? </span>
+          <Link
+            href="/auth/login"
+            className="text-indigo-600 hover:text-indigo-500 font-medium transition-colors"
+          >
+            Se connecter
+          </Link>
+        </div>
+      </form>
+    </AuthCard>
   )
 }

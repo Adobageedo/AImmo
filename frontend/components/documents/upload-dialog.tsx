@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -25,18 +25,39 @@ import { documentService } from "@/lib/services/document-service"
 import { useAuthStore } from "@/lib/store/auth-store"
 import { useDocuments } from "@/lib/contexts/document-context"
 
-export function UploadDialog() {
+export interface UploadDialogProps {
+  defaultFolder?: string
+  defaultDocumentType?: DocumentType
+  onUploadSuccess?: (documentId: string) => void
+  trigger?: React.ReactNode
+}
+
+export function UploadDialog({
+  defaultFolder,
+  defaultDocumentType,
+  onUploadSuccess,
+  trigger
+}: UploadDialogProps = {}) {
   const [open, setOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [documentType, setDocumentType] = useState<DocumentType>(DocumentType.AUTRE)
+  const [documentType, setDocumentType] = useState<DocumentType>(defaultDocumentType || DocumentType.AUTRE)
   const [tags, setTags] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const { currentOrganizationId } = useAuthStore()
   const { currentFolder, refreshDocuments } = useDocuments()
+
+  // Use passed defaultFolder or context currentFolder
+  const targetFolder = defaultFolder || currentFolder
+  const [customFolder, setCustomFolder] = useState(targetFolder)
+
+  // Update customFolder when targetFolder changes (e.g. opening dialog in different context)
+  useEffect(() => {
+    setCustomFolder(targetFolder)
+  }, [targetFolder])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -66,12 +87,12 @@ export function UploadDialog() {
     setError(null)
 
     try {
-      await documentService.uploadDocument({
+      const doc = await documentService.uploadDocument({
         file,
         organization_id: currentOrganizationId,
         title: title || file.name,
         document_type: documentType,
-        folder_path: currentFolder,
+        folder_path: customFolder, // Use user-defined folder
         description: description || undefined,
         tags: tags ? tags.split(",").map(t => t.trim()) : undefined,
       })
@@ -79,6 +100,10 @@ export function UploadDialog() {
       await refreshDocuments()
       setOpen(false)
       resetForm()
+
+      if (onUploadSuccess && doc) {
+        onUploadSuccess(doc.id)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de l'upload")
     } finally {
@@ -90,7 +115,7 @@ export function UploadDialog() {
     setFile(null)
     setTitle("")
     setDescription("")
-    setDocumentType(DocumentType.AUTRE)
+    setDocumentType(defaultDocumentType || DocumentType.AUTRE)
     setTags("")
     setError(null)
   }
@@ -98,16 +123,18 @@ export function UploadDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Upload className="mr-2 h-4 w-4" />
-          Uploader un fichier
-        </Button>
+        {trigger || (
+          <Button>
+            <Upload className="mr-2 h-4 w-4" />
+            Uploader un fichier
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Uploader un document</DialogTitle>
           <DialogDescription>
-            Ajouter un nouveau document à votre organisation
+            Ajouter un nouveau document à votre organisation dans {targetFolder === "/" ? "la racine" : targetFolder}
           </DialogDescription>
         </DialogHeader>
 
@@ -149,13 +176,26 @@ export function UploadDialog() {
           </div>
 
           <div className="space-y-2">
+            <label htmlFor="folder" className="text-sm font-medium">
+              Dossier de destination
+            </label>
+            <Input
+              id="folder"
+              value={customFolder}
+              onChange={(e) => setCustomFolder(e.target.value)}
+              placeholder="/Documents"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="space-y-2">
             <label htmlFor="document_type" className="text-sm font-medium">
               Type de document
             </label>
             <Select
               value={documentType}
               onValueChange={(value) => setDocumentType(value as DocumentType)}
-              disabled={loading}
+              disabled={loading || !!defaultDocumentType}
             >
               <SelectTrigger>
                 <SelectValue />

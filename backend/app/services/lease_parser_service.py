@@ -1,16 +1,21 @@
 import json
 import os
-from typing import Optional
+from typing import Optional, Dict, Any
 from datetime import datetime
 from openai import OpenAI
+import logging
+from sqlalchemy.orm import Session
+
+logger = logging.getLogger("app")
 
 from app.schemas.ocr import ParsedLease, ParsedParty
+# from app.services.entity_matching_service import get_entity_matching_service
 
 
 class LeaseParserService:
     def __init__(self):
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
-        self.client = OpenAI(api_key=self.openai_api_key) if self.openai_api_key else None
+        from app.services.llm_service import llm_service
+        self.llm = llm_service
     
     def build_extraction_prompt(self, text: str) -> str:
         """Construit le prompt d'extraction structuré"""
@@ -33,22 +38,30 @@ FORMAT JSON ATTENDU:
     "parties": [
         {{
             "type": "landlord",
-            "name": "Nom du propriétaire/bailleur",
+            "name": "Nom du propriétaire/bailleur (ou raison sociale)",
             "address": "Adresse du bailleur",
-            "email": "email@example.com",
-            "phone": "0123456789"
+            "email": "email@example.com"
         }},
         {{
             "type": "tenant",
             "name": "Nom du locataire",
             "address": "Adresse du locataire",
-            "email": "email@example.com",
-            "phone": "0123456789"
+            "email": "email@example.com"
         }}
     ],
-    "property_address": "Adresse complète du bien loué",
+    "property_address": "Adresse complète du bien loué (sans ville ni CP)",
+    "property_zip": "75001",
+    "property_city": "Paris",
     "property_type": "appartement/maison/studio/autre",
     "surface_area": 50.5,
+    "construction_year": 1990,
+    "last_renovation_year": 2020,
+    "energy_class": "C",
+    "ges_class": "B",
+    "purchase_price": 250000.00,
+    "purchase_date": "2020-01-15",
+    "current_value": 280000.00,
+    "property_tax": 1200.00,
     "start_date": "2024-01-01",
     "end_date": "2025-01-01",
     "monthly_rent": 1200.00,
@@ -64,34 +77,32 @@ FORMAT JSON ATTENDU:
 JSON:"""
     
     async def parse_lease_with_llm(self, text: str) -> ParsedLease:
-        """Parse le bail avec un LLM (GPT-4)"""
-        if not self.client:
-            raise ValueError("OpenAI API key non configurée. Définir OPENAI_API_KEY dans .env")
-        
+        """Parse le bail avec un LLM (via LLMService)"""
+        # Limiter la taille du texte pour éviter de dépasser le contexte LLM.
+        # 100k+ caractères (votre doc actuel) est trop lourd pour une extraction JSON fiable.
+        # On garde le début et la fin (où se trouvent généralement les infos clés).
+        max_chars = 100000 
+        if len(text) > max_chars:
+            logger.info(f"DEBUG: Truncating text from {len(text)} to {max_chars} chars")
+            text = text[:max_chars // 2] + "\n\n[...] (TRONQUÉ POUR L'ANALYSE) [...]\n\n" + text[-max_chars // 2:]
+            
         prompt = self.build_extraction_prompt(text)
+        system_prompt = "Tu es un expert en extraction de données de contrats de bail. Tu renvoies uniquement du JSON valide."
         
         try:
-            response = self.client.chat.completions.create(
-                model="gpt-4-turbo-preview",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "Tu es un expert en extraction de données de contrats de bail. Tu renvoies uniquement du JSON valide."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=0.1,
-                response_format={"type": "json_object"}
+            data = await self.llm.get_json_completion(
+                prompt=prompt,
+                system_prompt=system_prompt
             )
             
-            result_text = response.choices[0].message.content
-            data = json.loads(result_text)
+            # Nettoyage des données
+            raw_parties = data.get("parties", [])
+            for p in raw_parties:
+                if not p.get("name"):
+                    p["name"] = "Inconnu"
             
             # Validation et conversion
-            parties = [ParsedParty(**party) for party in data.get("parties", [])]
+            parties = [ParsedParty(**party) for party in raw_parties]
             
             # Conversion des dates
             start_date = None
@@ -105,6 +116,13 @@ JSON:"""
             if data.get("end_date"):
                 try:
                     end_date = datetime.strptime(data["end_date"], "%Y-%m-%d").date()
+                except Exception:
+                    pass
+            
+            purchase_date = None
+            if data.get("purchase_date"):
+                try:
+                    purchase_date = datetime.strptime(data["purchase_date"], "%Y-%m-%d").date()
                 except Exception:
                     pass
             
@@ -126,9 +144,19 @@ JSON:"""
             
             return ParsedLease(
                 parties=parties,
-                property_address=data.get("property_address", ""),
+                property_address=data.get("property_address") or "Adresse non trouvée",
+                property_zip=data.get("property_zip"),
+                property_city=data.get("property_city"),
                 property_type=data.get("property_type"),
                 surface_area=data.get("surface_area"),
+                construction_year=data.get("construction_year"),
+                last_renovation_year=data.get("last_renovation_year"),
+                energy_class=data.get("energy_class"),
+                ges_class=data.get("ges_class"),
+                purchase_price=data.get("purchase_price"),
+                purchase_date=purchase_date,
+                current_value=data.get("current_value"),
+                property_tax=data.get("property_tax"),
                 start_date=start_date,
                 end_date=end_date,
                 monthly_rent=data.get("monthly_rent"),
@@ -143,42 +171,20 @@ JSON:"""
         except Exception as e:
             raise ValueError(f"Erreur lors du parsing LLM: {str(e)}")
     
-    def parse_lease_with_rules(self, text: str) -> ParsedLease:
-        """
-        Parsing basé sur des règles (fallback si pas d'API OpenAI)
-        Version simple avec regex
-        """
-        import re
-        
-        # Extraction basique avec regex
-        parties = []
-        property_address = ""
-        monthly_rent = None
-        
-        # Chercher "loyer" ou "rent"
-        rent_match = re.search(r'loyer.*?(\d+(?:[.,]\d+)?)\s*€?', text, re.IGNORECASE)
-        if rent_match:
-            monthly_rent = float(rent_match.group(1).replace(',', '.'))
-        
-        # Chercher une adresse
-        address_match = re.search(r'(\d+.*?(?:rue|avenue|boulevard|place).*?\d{5})', text, re.IGNORECASE)
-        if address_match:
-            property_address = address_match.group(1)
-        
-        return ParsedLease(
-            parties=parties,
-            property_address=property_address or "Adresse non trouvée",
-            monthly_rent=monthly_rent,
-            confidence=0.3,  # Faible confiance pour parsing par règles
-            raw_data={"method": "regex", "text_length": len(text)}
-        )
     
+    # async def parse_lease_with_entity_matching method removed - use lease_enrichment_service instead
+
     async def parse_lease(self, text: str, use_llm: bool = True) -> ParsedLease:
-        """Parse un bail avec LLM ou règles"""
-        if use_llm and self.client:
-            return await self.parse_lease_with_llm(text)
-        else:
-            return self.parse_lease_with_rules(text)
+        """Parse un bail avec LLM (requis)"""
+        if not self.llm.is_configured:
+            raise ValueError(
+                "OPENAI_API_KEY n'est pas configuré. "
+                "Le parsing de bail nécessite une clé API OpenAI valide. "
+                "Veuillez configurer OPENAI_API_KEY dans votre fichier .env"
+            )
+        
+        logger.info("DEBUG: Using LLM-based lease parser")
+        return await self.parse_lease_with_llm(text)
 
 
 lease_parser_service = LeaseParserService()

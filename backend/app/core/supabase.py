@@ -10,3 +10,9 @@ supabase: Client = create_client(
 
 def get_supabase() -> Client:
     return supabase
+
+
+def get_supabase_client() -> Client:
+    """Alias for dependency injection in endpoints"""
+    return supabase
+

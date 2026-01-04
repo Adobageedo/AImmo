@@ -15,26 +15,24 @@ from app.services.processing_service import processing_service
 router = APIRouter()
 
 
+import logging
+logger = logging.getLogger("app")
+
 @router.post("/process", response_model=DocumentProcessing, status_code=status.HTTP_201_CREATED)
 async def process_document(
     request: ProcessingRequest,
     user_id: str = Depends(get_current_user_id),
 ):
     """Lance le traitement OCR + Parsing d'un document"""
-    try:
-        result = await processing_service.process_document(
-            document_id=request.document_id,
-            organization_id=request.organization_id,
-            user_id=UUID(user_id),
-            ocr_provider=request.ocr_provider,
-            force_reprocess=request.force_reprocess,
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors du traitement: {str(e)}"
-        )
+    logger.info(f"API: Received process request for doc {request.document_id} by user {user_id}")
+    result = await processing_service.process_document(
+        document_id=request.document_id,
+        organization_id=request.organization_id,
+        user_id=UUID(user_id),
+        ocr_provider=request.ocr_provider,
+        force_reprocess=request.force_reprocess,
+    )
+    return result
 
 
 @router.get("/{processing_id}", response_model=DocumentProcessing)
@@ -77,17 +75,11 @@ async def validate_and_create(
     user_id: str = Depends(get_current_user_id),
 ):
     """Valide les données extraites et crée les entités (propriété, locataire, bail)"""
-    try:
-        result = await processing_service.validate_and_create_entities(
-            processing_id=request.processing_id,
-            organization_id=request.organization_id,
-            user_id=UUID(user_id),
-            validated_data=request.validated_data,
-            create_entities=request.create_entities,
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de la validation: {str(e)}"
-        )
+    result = await processing_service.validate_and_create_entities(
+        processing_id=request.processing_id,
+        organization_id=request.organization_id,
+        user_id=UUID(user_id),
+        validated_data=request.validated_data,
+        create_entities=request.create_entities,
+    )
+    return result

@@ -119,25 +119,14 @@ export function LeaseValidationForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
-                <Input
-                  type="email"
-                  value={landlord?.email || ""}
-                  onChange={(e) => updateParty(landlordIndex, "email", e.target.value)}
-                  placeholder="email@example.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Téléphone</label>
-                <Input
-                  value={landlord?.phone || ""}
-                  onChange={(e) => updateParty(landlordIndex, "phone", e.target.value)}
-                  placeholder="01 23 45 67 89"
-                />
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <Input
+                type="email"
+                value={landlord?.email || ""}
+                onChange={(e) => updateParty(landlordIndex, "email", e.target.value)}
+                placeholder="email@example.com"
+              />
             </div>
           </CardContent>
         </Card>
@@ -162,25 +151,14 @@ export function LeaseValidationForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
-                <Input
-                  type="email"
-                  value={tenant?.email || ""}
-                  onChange={(e) => updateParty(tenantIndex, "email", e.target.value)}
-                  placeholder="email@example.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Téléphone</label>
-                <Input
-                  value={tenant?.phone || ""}
-                  onChange={(e) => updateParty(tenantIndex, "phone", e.target.value)}
-                  placeholder="01 23 45 67 89"
-                />
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <Input
+                type="email"
+                value={tenant?.email || ""}
+                onChange={(e) => updateParty(tenantIndex, "email", e.target.value)}
+                placeholder="email@example.com"
+              />
             </div>
           </CardContent>
         </Card>

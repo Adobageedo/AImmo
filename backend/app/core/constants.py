@@ -67,5 +67,17 @@ class ProcessingStatus(str, Enum):
     VALIDATED = "validated"
 
 
-SUPPORTED_OCR_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png"]
+SUPPORTED_OCR_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png", ".docx"]
 MIN_TEXT_CONFIDENCE = 0.6
+
+
+class LLMModel(str, Enum):
+    GPT_5_1 = "gpt-5.1"
+    GPT_5_mini = "gpt-5-mini"
+    GPT_5_nano = "gpt-5-nano"
+    GPT_4_1_nano = "gpt-4.1-nano"
+
+
+DEFAULT_LLM_MODEL = LLMModel.GPT_4_1_nano
+DEFAULT_LLM_TEMPERATURE = 0.1
+DEFAULT_LLM_MAX_TOKENS = 2000

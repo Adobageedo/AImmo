@@ -1,40 +1,17 @@
 import Link from "next/link"
 import { Building2, Github, Twitter, Linkedin, Mail } from "lucide-react"
+import { FOOTER_NAV, SOCIAL_LINKS } from "@/lib/constants/navigation"
+import { APP_NAME, APP_DESCRIPTION, APP_CONTACT_EMAIL } from "@/lib/constants/app"
 
-const footerNavigation = {
-  product: [
-    { name: "Fonctionnalités", href: "#" },
-    { name: "Tarifs", href: "#" },
-    { name: "Sécurité", href: "#" },
-    { name: "Roadmap", href: "#" },
-  ],
-  company: [
-    { name: "À propos", href: "#" },
-    { name: "Blog", href: "#" },
-    { name: "Carrières", href: "#" },
-    { name: "Contact", href: "#" },
-  ],
-  resources: [
-    { name: "Documentation", href: "#" },
-    { name: "API", href: "#" },
-    { name: "Support", href: "#" },
-    { name: "Status", href: "#" },
-  ],
-  legal: [
-    { name: "Confidentialité", href: "#" },
-    { name: "Conditions", href: "#" },
-    { name: "Cookies", href: "#" },
-    { name: "Mentions légales", href: "#" },
-  ],
+const socialIconMap: Record<string, typeof Twitter> = {
+  Twitter,
+  Linkedin,
+  Github,
 }
 
-const socialLinks = [
-  { name: "Twitter", icon: Twitter, href: "#" },
-  { name: "LinkedIn", icon: Linkedin, href: "#" },
-  { name: "GitHub", icon: Github, href: "#" },
-]
-
 export function Footer() {
+  const currentYear = new Date().getFullYear()
+
   return (
     <footer className="border-t bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -47,14 +24,14 @@ export function Footer() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600">
                   <Building2 className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-semibold text-gray-900">AImmo</span>
+                <span className="text-xl font-semibold text-gray-900">{APP_NAME}</span>
               </Link>
               <p className="mt-4 text-sm text-gray-600">
-                La plateforme de gestion immobilière intelligente qui simplifie votre quotidien.
+                {APP_DESCRIPTION}
               </p>
               <div className="mt-6 flex space-x-4">
-                {socialLinks.map((item) => {
-                  const Icon = item.icon
+                {SOCIAL_LINKS.map((item) => {
+                  const Icon = socialIconMap[item.icon]
                   return (
                     <a
                       key={item.name}
@@ -64,77 +41,31 @@ export function Footer() {
                       rel="noopener noreferrer"
                     >
                       <span className="sr-only">{item.name}</span>
-                      <Icon className="h-5 w-5" />
+                      {Icon && <Icon className="h-5 w-5" />}
                     </a>
                   )
                 })}
               </div>
             </div>
 
-            {/* Navigation columns */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900">Produit</h3>
-              <ul className="mt-4 space-y-3">
-                {footerNavigation.product.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900">Entreprise</h3>
-              <ul className="mt-4 space-y-3">
-                {footerNavigation.company.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900">Ressources</h3>
-              <ul className="mt-4 space-y-3">
-                {footerNavigation.resources.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900">Légal</h3>
-              <ul className="mt-4 space-y-3">
-                {footerNavigation.legal.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* Navigation columns - dynamically generated */}
+            {FOOTER_NAV.map((section) => (
+              <div key={section.title}>
+                <h3 className="text-sm font-semibold text-gray-900">{section.title}</h3>
+                <ul className="mt-4 space-y-3">
+                  {section.items.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -142,15 +73,15 @@ export function Footer() {
         <div className="border-t py-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-sm text-gray-600">
-              © {new Date().getFullYear()} AImmo. Tous droits réservés.
+              © {currentYear} {APP_NAME}. Tous droits réservés.
             </p>
             <div className="flex items-center space-x-4">
               <a
-                href="mailto:contact@aimmo.fr"
+                href={`mailto:${APP_CONTACT_EMAIL}`}
                 className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <Mail className="h-4 w-4" />
-                <span>contact@aimmo.fr</span>
+                <span>{APP_CONTACT_EMAIL}</span>
               </a>
             </div>
           </div>

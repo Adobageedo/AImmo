@@ -1,6 +1,9 @@
 from pydantic_settings import BaseSettings
 from typing import List
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AImmo API"
@@ -23,8 +26,21 @@ class Settings(BaseSettings):
     def allowed_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
     
-    # OpenAI (optionnel pour parsing LLM)
+    # LLM Settings
     OPENAI_API_KEY: str = ""
+    DEFAULT_LLM_MODEL: str = "gpt-4-turbo-preview"
+    DEFAULT_LLM_TEMPERATURE: float = 0.7
+    DEFAULT_LLM_MAX_TOKENS: int = 2000
+    
+    # Chat SDK Settings
+    QDRANT_COLLECTION: str = "aimmo_documents"
+    MAX_CONVERSATION_HISTORY: int = 50
+    CHUNK_SIZE: int = 1000
+    CHUNK_OVERLAP: int = 200
+    
+    # Legifrance API Settings
+    LEGIFRANCE_CLIENT_ID: str = ""
+    LEGIFRANCE_CLIENT_SECRET: str = ""
     
     class Config:
         env_file = ".env"

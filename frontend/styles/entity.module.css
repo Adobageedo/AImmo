@@ -1,0 +1,658 @@
+/* Entity Module Styles - BEM Convention */
+/* Phase 6 - Business UI Foundation */
+
+/* ============================================
+   ENTITY LIST
+   ============================================ */
+
+.entity-list {
+    @apply flex flex-col gap-3;
+}
+
+.entity-list__header {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6;
+}
+
+.entity-list__title {
+    @apply text-2xl font-bold text-gray-900;
+}
+
+.entity-list__subtitle {
+    @apply text-sm text-gray-500 mt-1;
+}
+
+.entity-list__actions {
+    @apply flex items-center gap-3 flex-wrap;
+}
+
+.entity-list__filters {
+    @apply flex flex-wrap items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100 mb-6;
+}
+
+.entity-list__filter-group {
+    @apply flex items-center gap-2;
+}
+
+.entity-list__filter-label {
+    @apply text-sm font-medium text-gray-700 whitespace-nowrap;
+}
+
+.entity-list__search {
+    @apply relative flex-1 min-w-[200px];
+}
+
+.entity-list__search-icon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400;
+}
+
+.entity-list__search-input {
+    @apply w-full h-10 pl-10 pr-4 rounded-lg border border-gray-200 bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 outline-none text-sm;
+}
+
+.entity-list__count {
+    @apply text-sm text-gray-500 px-3 py-1.5 bg-gray-100 rounded-full;
+}
+
+.entity-list__item {
+    @apply relative flex items-center p-4 bg-white rounded-xl border border-gray-200 transition-all duration-200 cursor-pointer;
+}
+
+.entity-list__item:hover {
+    @apply border-indigo-200 shadow-md;
+    --tw-shadow-color: rgb(224 231 255 / 0.5);
+}
+
+.entity-list__item--highlight {
+    @apply border-indigo-300 bg-indigo-50/50;
+}
+
+.entity-list__item--selected {
+    @apply border-indigo-500 bg-indigo-50 ring-2 ring-indigo-500/20;
+}
+
+.entity-list__item--disabled {
+    @apply opacity-50 cursor-not-allowed hover:border-gray-200 hover:shadow-none;
+}
+
+.entity-list__item-icon {
+    @apply flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-xl mr-4 transition-all duration-200;
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+}
+
+.entity-list__item:hover .entity-list__item-icon {
+    background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
+}
+
+.entity-list__item-icon svg {
+    @apply h-6 w-6 text-indigo-600;
+}
+
+.entity-list__item-avatar {
+    @apply flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full mr-4 text-white font-semibold text-sm;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.entity-list__item-content {
+    @apply flex-1 min-w-0;
+}
+
+.entity-list__item-header {
+    @apply flex items-center gap-2 mb-1;
+}
+
+.entity-list__item-title {
+    @apply font-semibold text-gray-900 truncate transition-colors;
+}
+
+.entity-list__item:hover .entity-list__item-title {
+    @apply text-indigo-700;
+}
+
+.entity-list__item-badge {
+    @apply flex-shrink-0;
+}
+
+.entity-list__item-subtitle {
+    @apply text-sm text-gray-500 truncate;
+}
+
+.entity-list__item-meta {
+    @apply flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500;
+}
+
+.entity-list__item-meta-item {
+    @apply flex items-center gap-1;
+}
+
+.entity-list__item-meta-item svg {
+    @apply h-3.5 w-3.5;
+}
+
+.entity-list__item-stats {
+    @apply hidden sm:flex items-center gap-4 ml-4 text-right;
+}
+
+.entity-list__item-stat {
+    @apply flex flex-col items-end;
+}
+
+.entity-list__item-stat-value {
+    @apply text-lg font-bold text-gray-900;
+}
+
+.entity-list__item-stat-label {
+    @apply text-xs text-gray-500;
+}
+
+.entity-list__item-stat-value--highlight {
+    @apply text-indigo-600;
+}
+
+.entity-list__item-stat-value--success {
+    @apply text-green-600;
+}
+
+.entity-list__item-stat-value--warning {
+    @apply text-amber-600;
+}
+
+.entity-list__item-stat-value--error {
+    @apply text-red-600;
+}
+
+.entity-list__item-actions {
+    @apply flex items-center gap-2 ml-4 opacity-0 transition-opacity;
+}
+
+.entity-list__item:hover .entity-list__item-actions {
+    @apply opacity-100;
+}
+
+.entity-list__item-action {
+    @apply p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors;
+}
+
+.entity-list__item-chevron {
+    @apply h-5 w-5 text-gray-300 ml-2 transition-colors;
+}
+
+.entity-list__item:hover .entity-list__item-chevron {
+    @apply text-indigo-400;
+}
+
+/* Grid View */
+.entity-list--grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+}
+
+.entity-list--grid .entity-list__item {
+    @apply flex-col items-start p-6;
+}
+
+.entity-list--grid .entity-list__item-icon {
+    @apply mb-4 mr-0;
+}
+
+.entity-list--grid .entity-list__item-stats {
+    @apply flex flex-col items-start gap-2 mt-4 ml-0 text-left w-full pt-4 border-t;
+}
+
+.entity-list--grid .entity-list__item-stat {
+    @apply flex-row items-center justify-between w-full;
+}
+
+/* Table View */
+.entity-list--table {
+    @apply overflow-x-auto;
+}
+
+.entity-list__table {
+    @apply w-full min-w-[600px];
+}
+
+.entity-list__table-header {
+    @apply sticky top-0 bg-gray-50 border-b border-gray-200;
+}
+
+.entity-list__table-header-cell {
+    @apply px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider;
+}
+
+.entity-list__table-header-cell--sortable {
+    @apply cursor-pointer hover:text-indigo-600 transition-colors;
+}
+
+.entity-list__table-header-cell--sorted {
+    @apply text-indigo-600;
+}
+
+.entity-list__table-row {
+    @apply border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer;
+}
+
+.entity-list__table-cell {
+    @apply px-4 py-4 text-sm text-gray-700;
+}
+
+/* Pagination */
+.entity-list__pagination {
+    @apply flex items-center justify-between mt-6 pt-4 border-t border-gray-100;
+}
+
+.entity-list__pagination-info {
+    @apply text-sm text-gray-500;
+}
+
+.entity-list__pagination-controls {
+    @apply flex items-center gap-2;
+}
+
+.entity-list__pagination-btn {
+    @apply flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-600 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.entity-list__pagination-btn--active {
+    @apply bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700;
+}
+
+/* ============================================
+   ENTITY DETAIL
+   ============================================ */
+
+.entity-detail {
+    @apply space-y-6;
+}
+
+.entity-detail__header {
+    @apply flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 pb-6 border-b border-gray-200;
+}
+
+.entity-detail__header-main {
+    @apply flex items-start gap-4;
+}
+
+.entity-detail__header-icon {
+    @apply flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-2xl;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.entity-detail__header-icon svg {
+    @apply h-8 w-8 text-white;
+}
+
+.entity-detail__header-avatar {
+    @apply flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-full text-white font-bold text-xl;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.entity-detail__header-content {
+    @apply flex-1 min-w-0;
+}
+
+.entity-detail__header-title-row {
+    @apply flex items-center gap-3 flex-wrap;
+}
+
+.entity-detail__header-title {
+    @apply text-2xl font-bold text-gray-900;
+}
+
+.entity-detail__header-subtitle {
+    @apply text-gray-500 mt-1;
+}
+
+.entity-detail__header-meta {
+    @apply flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-500;
+}
+
+.entity-detail__header-meta-item {
+    @apply flex items-center gap-1.5;
+}
+
+.entity-detail__header-meta-item svg {
+    @apply h-4 w-4;
+}
+
+.entity-detail__header-actions {
+    @apply flex items-center gap-3 flex-wrap;
+}
+
+/* Stats Row */
+.entity-detail__stats {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-4;
+}
+
+.entity-detail__stat {
+    @apply relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-indigo-200 hover:shadow-md;
+}
+
+.entity-detail__stat-icon {
+    @apply absolute top-3 right-3 h-8 w-8 text-gray-200;
+}
+
+.entity-detail__stat-value {
+    @apply text-2xl font-bold text-gray-900 mb-1;
+}
+
+.entity-detail__stat-value--highlight {
+    @apply text-indigo-600;
+}
+
+.entity-detail__stat-value--success {
+    @apply text-green-600;
+}
+
+.entity-detail__stat-value--warning {
+    @apply text-amber-600;
+}
+
+.entity-detail__stat-value--error {
+    @apply text-red-600;
+}
+
+.entity-detail__stat-label {
+    @apply text-sm text-gray-500;
+}
+
+.entity-detail__stat-trend {
+    @apply flex items-center gap-1 text-xs font-medium mt-2;
+}
+
+.entity-detail__stat-trend--positive {
+    @apply text-green-600;
+}
+
+.entity-detail__stat-trend--negative {
+    @apply text-red-600;
+}
+
+/* Sections */
+.entity-detail__section {
+    @apply bg-white rounded-xl border border-gray-200 overflow-hidden;
+}
+
+.entity-detail__section-header {
+    @apply flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50;
+}
+
+.entity-detail__section-title {
+    @apply text-lg font-semibold text-gray-900;
+}
+
+.entity-detail__section-action {
+    @apply text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors;
+}
+
+.entity-detail__section-content {
+    @apply p-6;
+}
+
+/* Info Grid */
+.entity-detail__info-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+}
+
+.entity-detail__info-item {
+    @apply flex flex-col;
+}
+
+.entity-detail__info-label {
+    @apply text-sm font-medium text-gray-500 mb-1;
+}
+
+.entity-detail__info-value {
+    @apply text-gray-900;
+}
+
+.entity-detail__info-value--highlight {
+    @apply font-semibold text-indigo-600;
+}
+
+.entity-detail__info-value--empty {
+    @apply text-gray-400 italic;
+}
+
+/* Related Entities */
+.entity-detail__related {
+    @apply flex flex-col gap-3;
+}
+
+.entity-detail__related-item {
+    @apply flex items-center p-4 rounded-xl border border-gray-200 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all cursor-pointer;
+}
+
+.entity-detail__related-icon {
+    @apply flex items-center justify-center w-10 h-10 rounded-lg mr-3;
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+}
+
+.entity-detail__related-icon svg {
+    @apply h-5 w-5 text-indigo-600;
+}
+
+.entity-detail__related-content {
+    @apply flex-1 min-w-0;
+}
+
+.entity-detail__related-title {
+    @apply font-medium text-gray-900 truncate;
+}
+
+.entity-detail__related-subtitle {
+    @apply text-sm text-gray-500;
+}
+
+.entity-detail__related-chevron {
+    @apply h-5 w-5 text-gray-300 ml-2;
+}
+
+/* Timeline / Activity */
+.entity-detail__timeline {
+    @apply relative pl-6;
+}
+
+.entity-detail__timeline::before {
+    content: '';
+    @apply absolute left-[11px] top-2 bottom-2 w-0.5 bg-gray-200;
+}
+
+.entity-detail__timeline-item {
+    @apply relative pb-6 last:pb-0;
+}
+
+.entity-detail__timeline-dot {
+    @apply absolute -left-6 top-1 w-6 h-6 rounded-full border-2 border-white bg-indigo-500 flex items-center justify-center shadow-sm;
+}
+
+.entity-detail__timeline-dot--success {
+    @apply bg-green-500;
+}
+
+.entity-detail__timeline-dot--warning {
+    @apply bg-amber-500;
+}
+
+.entity-detail__timeline-dot--error {
+    @apply bg-red-500;
+}
+
+.entity-detail__timeline-dot svg {
+    @apply h-3 w-3 text-white;
+}
+
+.entity-detail__timeline-content {
+    @apply pt-0.5;
+}
+
+.entity-detail__timeline-title {
+    @apply font-medium text-gray-900;
+}
+
+.entity-detail__timeline-date {
+    @apply text-sm text-gray-500;
+}
+
+.entity-detail__timeline-description {
+    @apply text-sm text-gray-600 mt-1;
+}
+
+/* ============================================
+   ENTITY FORM
+   ============================================ */
+
+.entity-form {
+    @apply space-y-6;
+}
+
+.entity-form__section {
+    @apply bg-white rounded-xl border border-gray-200 p-6;
+}
+
+.entity-form__section-title {
+    @apply text-lg font-semibold text-gray-900 mb-4 pb-4 border-b border-gray-100;
+}
+
+.entity-form__grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+}
+
+.entity-form__field {
+    @apply flex flex-col gap-2;
+}
+
+.entity-form__field--full {
+    @apply md:col-span-2;
+}
+
+.entity-form__label {
+    @apply text-sm font-medium text-gray-700;
+}
+
+.entity-form__label-required {
+    @apply text-red-500 ml-0.5;
+}
+
+.entity-form__input {
+    @apply w-full h-10 px-4 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 outline-none text-sm;
+}
+
+.entity-form__input--error {
+    @apply border-red-300 focus:border-red-500 focus:ring-red-500/20;
+}
+
+.entity-form__textarea {
+    @apply w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 outline-none text-sm resize-none;
+}
+
+.entity-form__select {
+    @apply w-full h-10 px-4 rounded-lg border border-gray-200 bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 outline-none text-sm cursor-pointer;
+}
+
+.entity-form__error {
+    @apply text-sm text-red-600;
+}
+
+.entity-form__hint {
+    @apply text-sm text-gray-500;
+}
+
+.entity-form__actions {
+    @apply flex items-center justify-end gap-3 pt-6 border-t border-gray-100;
+}
+
+/* ============================================
+   EMPTY & LOADING STATES
+   ============================================ */
+
+.entity-empty {
+    @apply flex flex-col items-center justify-center py-16 px-4 text-center bg-white rounded-xl border-2 border-dashed border-gray-200;
+}
+
+.entity-empty__icon {
+    @apply flex items-center justify-center w-16 h-16 rounded-full mb-6;
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+}
+
+.entity-empty__icon svg {
+    @apply h-8 w-8 text-indigo-500;
+}
+
+.entity-empty__title {
+    @apply text-lg font-semibold text-gray-900 mb-2;
+}
+
+.entity-empty__description {
+    @apply text-gray-500 max-w-sm mb-6;
+}
+
+.entity-loading {
+    @apply flex flex-col items-center justify-center py-16;
+}
+
+.entity-loading__spinner {
+    @apply animate-spin h-8 w-8 text-indigo-600 mb-4;
+}
+
+.entity-loading__text {
+    @apply text-gray-500;
+}
+
+/* Skeleton Loader */
+.entity-skeleton {
+    @apply animate-pulse;
+}
+
+.entity-skeleton__item {
+    @apply flex items-center p-4 bg-white rounded-xl border border-gray-200;
+}
+
+.entity-skeleton__icon {
+    @apply w-12 h-12 rounded-xl bg-gray-200 mr-4;
+}
+
+.entity-skeleton__content {
+    @apply flex-1;
+}
+
+.entity-skeleton__title {
+    @apply h-4 bg-gray-200 rounded w-1/3 mb-2;
+}
+
+.entity-skeleton__subtitle {
+    @apply h-3 bg-gray-200 rounded w-1/2;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 640px) {
+    .entity-list__item {
+        @apply flex-col items-start;
+    }
+
+    .entity-list__item-icon,
+    .entity-list__item-avatar {
+        @apply mb-3 mr-0;
+    }
+
+    .entity-list__item-stats {
+        @apply flex flex-row w-full mt-4 pt-4 border-t border-gray-100;
+    }
+
+    .entity-list__item-stat {
+        @apply items-start text-left flex-1;
+    }
+
+    .entity-list__item-actions {
+        @apply absolute top-4 right-4 opacity-100;
+    }
+
+    .entity-detail__header {
+        @apply flex-col;
+    }
+
+    .entity-detail__header-actions {
+        @apply w-full justify-start;
+    }
+}

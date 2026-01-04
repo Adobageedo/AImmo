@@ -39,6 +39,15 @@ class Document(DocumentBase):
     created_at: datetime
     updated_at: datetime
     
+    # Vectorization fields
+    vectorization_status: Optional[str] = "not_planned"
+    vectorization_started_at: Optional[datetime] = None
+    vectorization_completed_at: Optional[datetime] = None
+    vectorization_error: Optional[str] = None
+    qdrant_collection_name: Optional[str] = None
+    num_chunks: Optional[int] = 0
+    content_hash: Optional[str] = None
+    
     class Config:
         from_attributes = True
 
