@@ -90,7 +90,7 @@ async def get_newsletter(
     }
 
 
-@router.get("/{newsletter_id}/last-edition", response_model=NewsletterEdition)
+@router.get("/{newsletter_id}/last-edition/", response_model=NewsletterEdition)
 async def get_last_edition(
     newsletter_id: UUID,
     user_id: str = Depends(get_current_user_id),
@@ -102,7 +102,7 @@ async def get_last_edition(
     newsletter_response = supabase.table("newsletters").select("id").eq(
         "id", str(newsletter_id)
     ).eq("is_active", True).execute()
-    
+
     if not newsletter_response.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

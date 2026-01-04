@@ -70,7 +70,7 @@ export default function NewsletterPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 space-y-6">
                             {/* Last Edition */}
-                            {lastEdition && (
+                            {lastEdition ? (
                                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                                     <div className="flex items-center space-x-2 mb-4">
                                         <Calendar className="h-5 w-5 text-indigo-600" />
@@ -86,6 +86,16 @@ export default function NewsletterPage() {
                                         className="prose prose-sm max-w-none text-gray-700"
                                         dangerouslySetInnerHTML={{ __html: lastEdition.content }}
                                     />
+                                </div>
+                            ) : (
+                                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                                    <div className="flex items-center space-x-2 mb-4">
+                                        <Newspaper className="h-5 w-5 text-gray-400" />
+                                        <h2 className="text-lg font-semibold text-gray-900">Dernière édition</h2>
+                                    </div>
+                                    <p className="text-gray-500 text-center py-8">
+                                        Aucune édition disponible pour cette newsletter.
+                                    </p>
                                 </div>
                             )}
 

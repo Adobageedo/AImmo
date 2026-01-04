@@ -31,6 +31,7 @@ export default function ConversationsPage() {
         loadConversations,
         selectConversation,
         createNewConversation,
+        createTemporaryConversation,
         renameConversation,
         removeConversation,
         resetConversation,
@@ -63,15 +64,11 @@ export default function ConversationsPage() {
     }
 
     const handleSendMessage = async (message: string) => {
-        try {
-            // Create conversation first (without message)
-            const newConv = await createNewConversation(undefined)
-            
-            // Navigate to the new conversation with message as URL parameter
-            router.push(`/dashboard/conversations/${newConv.id}?message=${encodeURIComponent(message)}`)
-        } catch (err) {
-            console.error('Erreur lors de la création de conversation:', err)
-        }
+        // Créer une conversation temporaire locale (instantané)
+        const tempId = createTemporaryConversation(message)
+        
+        // Rediriger immédiatement vers la page de conversation avec l'ID temporaire
+        router.push(`/dashboard/conversations/${tempId}?message=${encodeURIComponent(message)}`)
     }
 
     const handleNewConversation = () => {
@@ -85,7 +82,10 @@ export default function ConversationsPage() {
     }
 
     useEffect(() => {
-        loadConversations()
+        // Charger les conversations en arrière-plan sans bloquer l'affichage
+        loadConversations().catch(err => {
+            console.error('Failed to load conversations:', err)
+        })
         // Reset conversation when on home page
         resetConversation()
     }, [loadConversations, resetConversation])

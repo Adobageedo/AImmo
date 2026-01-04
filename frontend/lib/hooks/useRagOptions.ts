@@ -1,21 +1,63 @@
 /**
  * useRagOptions Hook
  * Gère les options RAG (frontend only, pas de logique RAG)
+ * Persiste les paramètres dans localStorage
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { SourceType } from "../types/document";
 import { DEFAULT_RAG_OPTIONS } from "../constants/rag";
 
+const RAG_STORAGE_KEY = 'aimmo_rag_options';
+
+// Charger les options depuis localStorage
+function loadRagOptions() {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const stored = localStorage.getItem(RAG_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (err) {
+    console.error('Failed to load RAG options:', err);
+    return null;
+  }
+}
+
+// Sauvegarder les options dans localStorage
+function saveRagOptions(options: any) {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    localStorage.setItem(RAG_STORAGE_KEY, JSON.stringify(options));
+  } catch (err) {
+    console.error('Failed to save RAG options:', err);
+  }
+}
+
 export function useRagOptions() {
-  const [enabled, setEnabled] = useState(DEFAULT_RAG_OPTIONS.enabled);
-  const [strictMode, setStrictMode] = useState(DEFAULT_RAG_OPTIONS.strict_mode);
+  // Initialiser avec les valeurs sauvegardées ou les valeurs par défaut
+  const savedOptions = loadRagOptions();
+  
+  const [enabled, setEnabled] = useState(savedOptions?.enabled ?? DEFAULT_RAG_OPTIONS.enabled);
+  const [strictMode, setStrictMode] = useState(savedOptions?.strictMode ?? DEFAULT_RAG_OPTIONS.strict_mode);
   const [selectedSources, setSelectedSources] = useState<SourceType[]>(
-    DEFAULT_RAG_OPTIONS.sources
+    savedOptions?.selectedSources ?? DEFAULT_RAG_OPTIONS.sources
   );
-  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
-  const [selectedLeases, setSelectedLeases] = useState<string[]>([]);
-  const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>(savedOptions?.selectedDocuments ?? []);
+  const [selectedLeases, setSelectedLeases] = useState<string[]>(savedOptions?.selectedLeases ?? []);
+  const [selectedProperties, setSelectedProperties] = useState<string[]>(savedOptions?.selectedProperties ?? []);
+
+  // Sauvegarder automatiquement les changements
+  useEffect(() => {
+    saveRagOptions({
+      enabled,
+      strictMode,
+      selectedSources,
+      selectedDocuments,
+      selectedLeases,
+      selectedProperties,
+    });
+  }, [enabled, strictMode, selectedSources, selectedDocuments, selectedLeases, selectedProperties]);
 
   const toggleSource = useCallback((source: SourceType) => {
     setSelectedSources((prev) =>
@@ -24,11 +66,11 @@ export function useRagOptions() {
   }, []);
 
   const toggleStrictMode = useCallback(() => {
-    setStrictMode((prev) => !prev);
+    setStrictMode((prev: boolean) => !prev);
   }, []);
 
   const toggleRAG = useCallback(() => {
-    setEnabled((prev) => !prev);
+    setEnabled((prev: boolean) => !prev);
   }, []);
 
   const resetOptions = useCallback(() => {

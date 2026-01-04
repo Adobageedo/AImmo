@@ -26,6 +26,8 @@ export default function ConversationDetailPage() {
         error,
         suggestions,
         sendUserMessage,
+        sendUserMessageWithTempConversation,
+        updateConversationId,
         stopStreaming,
         retryLastMessage,
         conversation,
@@ -100,15 +102,46 @@ export default function ConversationDetailPage() {
             const message = urlParams.get('message')
             
             if (message) {
-                // New conversation - don't load from Supabase, just set the conversation ID
+                // Nouvelle conversation avec ID temporaire
                 setIsLoadingConversation(false)
+                
+                // Nettoyer l'URL immédiatement (enlever le message)
                 const cleanUrl = window.location.pathname
                 window.history.replaceState({}, '', cleanUrl)
                 
-                // Send the message immediately for new conversation
-                setTimeout(() => {
-                    handleSendMessage(message)
-                }, 100)
+                // Envoyer le message avec la conversation temporaire
+                const isTemporary = conversationId.startsWith('temp-')
+                
+                if (isTemporary) {
+                    // Utiliser la nouvelle fonction pour gérer le flux optimisé
+                    try {
+                        const realConvId = await sendUserMessageWithTempConversation(message, conversationId, {
+                            mode: strictMode ? ChatMode.RAG_ONLY : (ragEnabled ? ChatMode.RAG_ENHANCED : ChatMode.NORMAL),
+                            requestedSources: ragEnabled ? selectedSources : [],
+                            stream: true,
+                        })
+                        
+                        // Mettre à jour l'URL silencieusement avec l'ID réel
+                        if (realConvId !== conversationId) {
+                            window.history.replaceState({}, '', `/dashboard/conversations/${realConvId}`)
+                        }
+                    } catch (err) {
+                        console.error('Erreur lors de l\'envoi du message:', err)
+                    }
+                } else {
+                    // Conversation existante, utiliser la méthode classique
+                    setTimeout(() => {
+                        handleSendMessage(message)
+                    }, 100)
+                }
+                return
+            }
+            
+            // Vérifier si c'est une conversation temporaire sans message
+            const isTemporary = conversationId.startsWith('temp-')
+            if (isTemporary) {
+                // Conversation temporaire mais pas de message, juste afficher l'interface
+                setIsLoadingConversation(false)
                 return
             }
             
@@ -128,7 +161,7 @@ export default function ConversationDetailPage() {
         }
         
         loadConv()
-    }, [conversationId, selectConversation, router, loadConversations])
+    }, [conversationId, selectConversation, router, loadConversations, sendUserMessageWithTempConversation, ragEnabled, strictMode, selectedSources])
 
     // Empty state for individual conversation
     const conversationEmptyState = (
@@ -143,22 +176,12 @@ export default function ConversationDetailPage() {
         </div>
     )
 
-    // Loading state
-    if (isLoadingConversation) {
-        return (
-            <div className="h-full w-full flex items-center justify-center">
-                <div className="text-center space-y-4">
-                    <div className="w-8 h-8 mx-auto border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-gray-600">Chargement de la conversation...</p>
-                </div>
-            </div>
-        )
-    }
-
-    // Conversation not found
-    if (!conversation && !isLoadingConversation) {
-        return null
-    }
+    // Optimisation : Pas de page blanche - toujours afficher l'interface
+    // Le loading est géré en interne par ChatView
+    
+    // Pour les conversations temporaires, afficher immédiatement
+    const isTemporary = conversationId?.startsWith('temp-')
+    const shouldShowEmptyState = !isTemporary && !conversation && !isLoadingConversation && messages.length === 0
 
     return (
         <div className="h-full w-full flex flex-col relative">
@@ -220,7 +243,7 @@ export default function ConversationDetailPage() {
                 onToggleStrictMode={toggleStrictMode}
                 onToggleSource={toggleRagSource}
                 sidebarOpen={sidebarOpen}
-                emptyStateContent={conversationEmptyState}
+                emptyStateContent={shouldShowEmptyState ? conversationEmptyState : undefined}
                 placeholder="Posez votre question..."
             />
         </div>

@@ -5,6 +5,7 @@ export const NEWSLETTER_THEMES = {
   reglementation: "Réglementation",
   commercial: "Immobilier Commercial",
   residentiel: "Immobilier Résidentiel",
+  actualites: "Actualités",
 } as const
 
 export type NewsletterTheme = keyof typeof NEWSLETTER_THEMES

@@ -324,7 +324,7 @@ export function ChatInput({
                             onChange={(e) => setValue(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder={placeholder}
-                            disabled={disabled || isLoading}
+                            disabled={disabled}
                             rows={1}
                         />
                     </div>

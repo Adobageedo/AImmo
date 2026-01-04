@@ -64,38 +64,43 @@ class NewsletterGeneratorService:
         
         /* Header */
         .header {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
             padding: 40px 20px;
             text-align: center;
-            color: white;
+            color: #2c3e50;
         }}
         
         .header-icon {{
             font-size: 48px;
             margin-bottom: 16px;
+            color: #6c757d;
         }}
         
         .header h1 {{
             font-size: 28px;
-            font-weight: 700;
+            font-weight: 600;
             margin-bottom: 8px;
             line-height: 1.2;
+            color: #2c3e50;
         }}
         
         .header-subtitle {{
             font-size: 16px;
-            opacity: 0.95;
+            color: #6c757d;
             margin-bottom: 12px;
+            font-weight: 400;
         }}
         
         .header-date {{
             font-size: 14px;
-            opacity: 0.85;
-            background-color: rgba(255, 255, 255, 0.2);
+            color: #868e96;
+            background-color: #e9ecef;
             display: inline-block;
             padding: 6px 16px;
-            border-radius: 20px;
+            border-radius: 6px;
             margin-top: 8px;
+            font-weight: 500;
         }}
         
         /* Theme navigation tags */
@@ -122,20 +127,21 @@ class NewsletterGeneratorService:
         
         .theme-tag {{
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #6c757d;
             color: white;
             text-decoration: none;
             padding: 8px 16px;
-            border-radius: 20px;
+            border-radius: 6px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }}
         
         .theme-tag:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background-color: #5a6268;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         }}
         
         /* Content */
@@ -144,8 +150,8 @@ class NewsletterGeneratorService:
         }}
         
         .intro {{
-            background-color: #edf2f7;
-            border-left: 4px solid #667eea;
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 32px;
@@ -153,13 +159,13 @@ class NewsletterGeneratorService:
         
         .intro-text {{
             font-size: 16px;
-            color: #2d3748;
+            color: #2c3e50;
             line-height: 1.7;
         }}
         
         .intro-highlight {{
             font-weight: 600;
-            color: #667eea;
+            color: #495057;
         }}
         
         /* Theme sections */
@@ -168,8 +174,8 @@ class NewsletterGeneratorService:
         }}
         
         .theme-header {{
-            background: linear-gradient(to right, #f7fafc, #edf2f7);
-            border-left: 5px solid #667eea;
+            background-color: #f8f9fa;
+            border-left: 5px solid #6c757d;
             padding: 16px 20px;
             margin-bottom: 24px;
             border-radius: 8px;
@@ -199,18 +205,18 @@ class NewsletterGeneratorService:
         }}
         
         .article:hover {{
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #6c757d;
         }}
         
         .article-number {{
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #6c757d;
             color: white;
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 600;
             padding: 6px 12px;
-            border-radius: 20px;
+            border-radius: 6px;
             margin-bottom: 12px;
         }}
         
@@ -284,7 +290,7 @@ class NewsletterGeneratorService:
         
         .details-toggle-icon {{
             font-size: 18px;
-            color: #667eea;
+            color: #6c757d;
             transition: transform 0.3s ease;
         }}
         
@@ -324,11 +330,11 @@ class NewsletterGeneratorService:
         
         .read-more-btn {{
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #6c757d;
             color: white;
             text-decoration: none;
             padding: 12px 28px;
-            border-radius: 8px;
+            border-radius: 6px;
             font-weight: 600;
             font-size: 14px;
             margin-top: 16px;
@@ -336,8 +342,9 @@ class NewsletterGeneratorService:
         }}
         
         .read-more-btn:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background-color: #5a6268;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         }}
         
         /* Footer */
@@ -358,7 +365,7 @@ class NewsletterGeneratorService:
         .footer-branding {{
             font-size: 14px;
             font-weight: 600;
-            color: #667eea;
+            color: #6c757d;
         }}
         
         /* Mobile responsive */

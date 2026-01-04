@@ -60,7 +60,12 @@ export function useNewsletter(options: UseNewsletterOptions = {}) {
             setLastEdition(edition)
             return edition
         } catch (err) {
-            console.error("No last edition found:", err)
+            // Don't log 404 errors as they're expected when no editions exist
+            if (err instanceof Error && err.message.includes("Failed to fetch last edition")) {
+                // Silently handle 404 - no editions available
+                return null
+            }
+            console.error("Unexpected error loading last edition:", err)
             return null
         }
     }, [])

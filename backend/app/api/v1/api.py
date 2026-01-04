@@ -46,7 +46,7 @@ api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 api_router.include_router(newsletters.router, prefix="/newsletters", tags=["newsletters"])
-# api_router.include_router(jurisprudence.router, prefix="/jurisprudence", tags=["jurisprudence"])
+api_router.include_router(jurisprudence.router, prefix="/jurisprudence", tags=["jurisprudence"])
 # api_router.include_router(vectorization.router, prefix="/vectorization", tags=["vectorization"])
 
 # ============================================

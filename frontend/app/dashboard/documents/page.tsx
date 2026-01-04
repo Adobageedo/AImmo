@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { DocumentProvider, useDocuments } from "@/lib/contexts/document-context"
 import { UploadDialog, DocumentList, QuotaDisplay } from "@/components/documents"
+import { UploadDialogEnhanced } from "@/components/documents/upload-dialog-enhanced"
 import { PageHeader, SearchInput, EmptyState, Badge, Alert } from "@/components/ui"
 import { Folder, Filter, RefreshCw, FileText, HardDrive, Cloud, FileCode, CheckCircle, ArrowLeft, Loader2, AlertTriangle, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -70,9 +71,11 @@ function DocumentsContent() {
     }
   }
 
-  // Handle Lease Upload & Parsing
-  const handleLeaseUploadSuccess = async (documentId: string) => {
-    await startParsing(documentId)
+  // Handle Lease Upload Success (parsing is now automatic in dialog)
+  const handleLeaseUploadSuccess = async (documentIds: string[]) => {
+    // Refresh documents to show newly uploaded files
+    await refreshDocuments()
+    console.log(`Successfully uploaded ${documentIds.length} documents with automatic parsing`)
   }
 
   const handleValidation = async (createEntities: boolean) => {
@@ -207,7 +210,7 @@ function DocumentsContent() {
               <CardDescription>Analyse automatique et extraction de données</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-between items-center text-sm text-muted-foreground">
+              <div className="flex justify-between items-center text-sm text-muted-foreground mb-3">
                 <span>Intelligent Parsing</span>
                 <ArrowLeft className="h-4 w-4 rotate-180" />
               </div>
@@ -279,17 +282,33 @@ function DocumentsContent() {
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
 
-          <UploadDialog
-            defaultFolder={currentFolder}
-            defaultDocumentType={isLeaseFolder ? DocumentType.BAIL : undefined}
-            onUploadSuccess={isLeaseFolder ? handleLeaseUploadSuccess : undefined}
-            trigger={isLeaseFolder ? (
-              <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-indigo-700 hover:to-purple-700">
-                <FileCode className="mr-2 h-4 w-4" />
-                Uploader & Analyser
-              </Button>
-            ) : undefined}
-          />
+          {isLeaseFolder && (
+            <UploadDialogEnhanced
+              defaultFolder={currentFolder}
+              defaultDocumentType={DocumentType.BAIL}
+              onUploadSuccess={handleLeaseUploadSuccess}
+              trigger={
+                <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-indigo-700 hover:to-purple-700">
+                  <FileCode className="mr-2 h-4 w-4" />
+                  Import Lease
+                </Button>
+              }
+            />
+          )}
+
+          {!isLeaseFolder && (
+            <UploadDialogEnhanced
+              defaultFolder={currentFolder}
+              defaultDocumentType={isLeaseFolder ? DocumentType.BAIL : undefined}
+              onUploadSuccess={isLeaseFolder ? handleLeaseUploadSuccess : undefined}
+              trigger={
+                <Button variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Ajouter des fichiers
+                </Button>
+              }
+            />
+          )}
         </div>
       </PageHeader>
 

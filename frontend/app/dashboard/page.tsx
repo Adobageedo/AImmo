@@ -2,19 +2,23 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Building2, FileText, Users, TrendingUp, Clock, Calendar } from 'lucide-react'
+import { Building2, FileText, Users, TrendingUp, Clock, Calendar, FileCode } from 'lucide-react'
 import { StatCard, ActionCard, PageHeader } from '@/components/ui'
+import { UploadDialogEnhanced } from '@/components/documents/upload-dialog-enhanced'
 import { EmptyState } from '@/components/ui/empty-state'
 import Link from 'next/link'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { useProperties } from '@/lib/hooks/use-properties'
 import { useTenants } from '@/lib/hooks/use-tenants'
+import { DocumentType } from '@/lib/types/document'
+import { DocumentProvider } from '@/lib/contexts/document-context'
 
 export default function DashboardPage() {
   const router = useRouter()
   const { user, organization } = useAuthStore()
   const [stats, setStats] = useState({
     totalProperties: 0,
+    totalLeases: 0,
     totalDocuments: 0,
     totalTenants: 0,
     totalRevenue: 0,
@@ -34,8 +38,12 @@ export default function DashboardPage() {
         return sum + (parseFloat(prop.monthly_rent as any) || 0)
       }, 0)
 
+      // Count properties with active leases
+      const totalLeases = properties.filter(prop => prop.status === 'rented' || prop.current_tenant_id).length
+
       setStats({
         totalProperties: properties.length,
+        totalLeases,
         totalDocuments: 0, // TODO: fetch from documents API
         totalTenants: tenants?.length || 0,
         totalRevenue,
@@ -60,7 +68,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <DocumentProvider>
+      <div className="space-y-8">
       {/* Welcome Header */}
       <PageHeader
         title="Bonjour 👋"
@@ -83,11 +92,11 @@ export default function DashboardPage() {
           trend={{ value: `+${stats.totalProperties} ce mois`, positive: true }}
         />
         <StatCard
-          title="Documents"
-          value={stats.totalDocuments.toString()}
-          description="Fichiers stockés"
-          icon={FileText}
-          href="/dashboard/documents"
+          title="Baux"
+          value={stats.totalLeases.toString()}
+          description="Baux actifs"
+          icon={FileCode}
+          href="/dashboard/leases"
         />
         <StatCard
           title="Locataires"
@@ -126,12 +135,24 @@ export default function DashboardPage() {
             href="/dashboard/properties/new"
             gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
           />
-          <ActionCard
-            title="Analyser un bail"
-            description="Extraire les données d'un contrat"
-            icon={FileText}
-            href="/dashboard/documents"
-            gradient="bg-gradient-to-br from-orange-500 to-pink-600"
+          <UploadDialogEnhanced
+            defaultFolder="/Leases"
+            defaultDocumentType={DocumentType.BAIL}
+            trigger={
+              <div className="relative overflow-hidden rounded-xl p-6 text-white transition-all hover:scale-[1.02] hover:shadow-lg bg-gradient-to-br from-orange-500 to-pink-600 cursor-pointer">
+                <div className="flex items-center space-x-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Analyser un bail</p>
+                    <p className="text-sm text-white/80">Extraire les données d'un contrat</p>
+                  </div>
+                </div>
+                {/* Decorative circle */}
+                <div className="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-white/10" />
+              </div>
+            }
           />
         </div>
       </div>
@@ -164,5 +185,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </DocumentProvider>
   )
 }

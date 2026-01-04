@@ -41,11 +41,14 @@ interface UseChatMvpReturn {
     loadConversations: () => Promise<void>
     selectConversation: (id: string) => Promise<void>
     createNewConversation: (title?: string, initial_message?: string) => Promise<Conversation>
+    createTemporaryConversation: (message: string) => string
+    updateConversationId: (tempId: string, realId: string) => void
     renameConversation: (id: string, title: string) => Promise<void>
     removeConversation: (id: string) => Promise<void>
 
     // Messages
     sendUserMessage: (message: string, options?: SendMessageOptions) => Promise<void>
+    sendUserMessageWithTempConversation: (message: string, tempConvId: string, options?: SendMessageOptions) => Promise<string>
     clearMessages: () => void
     resetConversation: () => void
 
@@ -129,10 +132,12 @@ export function useChatMvp(options: UseChatMvpOptions = {}): UseChatMvpReturn {
     const [suggestions, setSuggestions] = useState<PromptSuggestion[]>([])
     const [citations, setCitations] = useState<Citation[]>([])
     const [activeCitation, setActiveCitation] = useState<Citation | null>(null)
+    const [isCreatingConversation, setIsCreatingConversation] = useState(false)
 
     // Refs
     const abortControllerRef = useRef<AbortController | null>(null)
     const lastMessageRef = useRef<string>("")
+    const pendingConversationCreation = useRef<Promise<Conversation> | null>(null)
 
     // Charger les conversations et suggestions au montage
     useEffect(() => {
@@ -149,6 +154,11 @@ export function useChatMvp(options: UseChatMvpOptions = {}): UseChatMvpReturn {
      */
     const loadConversations = useCallback(async () => {
         if (!organizationId) {
+            return
+        }
+        
+        // Ne pas charger si on a une conversation temporaire active
+        if (conversation?.id?.startsWith('temp-')) {
             return
         }
         
@@ -174,7 +184,7 @@ export function useChatMvp(options: UseChatMvpOptions = {}): UseChatMvpReturn {
                 setError('Failed to load conversations')
             }
         }
-    }, [organizationId])
+    }, [organizationId, conversation?.id])
 
     /**
      * Sélectionner une conversation
@@ -221,6 +231,46 @@ export function useChatMvp(options: UseChatMvpOptions = {}): UseChatMvpReturn {
         } finally {
             setIsLoading(false)
         }
+    }, [])
+
+    /**
+     * Créer une conversation temporaire (locale uniquement)
+     */
+    const createTemporaryConversation = useCallback((message: string): string => {
+        const tempId = `temp-${Date.now()}`
+        const tempConv: Conversation = {
+            id: tempId,
+            title: message.slice(0, 50) + (message.length > 50 ? '...' : ''),
+            organization_id: organizationId,
+            user_id: 'temp',
+            messages_count: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        }
+        
+        setConversation(tempConv)
+        setMessages([])
+        setCitations([])
+        
+        return tempId
+    }, [organizationId])
+
+    /**
+     * Mettre à jour l'ID de conversation après création backend
+     */
+    const updateConversationId = useCallback((tempId: string, realId: string) => {
+        setConversation(prev => {
+            if (prev && prev.id === tempId) {
+                return { ...prev, id: realId }
+            }
+            return prev
+        })
+        
+        setMessages(prev => prev.map(msg => 
+            msg.conversation_id === tempId 
+                ? { ...msg, conversation_id: realId }
+                : msg
+        ))
     }, [])
 
     /**
@@ -347,6 +397,154 @@ export function useChatMvp(options: UseChatMvpOptions = {}): UseChatMvpReturn {
     }, [setSuggestions])
 
     /**
+     * Envoyer un message avec une conversation temporaire (pour UX fluide)
+     */
+    const sendUserMessageWithTempConversation = useCallback(
+        async (message: string, tempConvId: string, sendOptions: SendMessageOptions = {}): Promise<string> => {
+            if (!message.trim()) return tempConvId
+
+            setError(null)
+            setIsLoading(true)
+            setSuggestions([])
+            
+            // Ajouter immédiatement le message utilisateur avec l'ID temporaire
+            const userMessageId = `msg-user-${Date.now()}`
+            const userMessage: Message = {
+                id: userMessageId,
+                conversation_id: tempConvId,
+                role: MessageRole.USER,
+                content: message,
+                citations: [],
+                created_at: new Date().toISOString(),
+            }
+            
+            setMessages([userMessage])
+            lastMessageRef.current = message
+            
+            // Créer la conversation en backend en arrière-plan
+            setIsCreatingConversation(true)
+            let realConversation: Conversation
+            
+            try {
+                const orgId = typeof organizationId === 'string' ? organizationId : (organizationId as any)?.id
+                realConversation = await chatSDKService.createConversation(
+                    message.slice(0, 50) + (message.length > 50 ? '...' : ''),
+                    orgId
+                )
+                
+                // Mettre à jour l'ID de conversation
+                updateConversationId(tempConvId, realConversation.id)
+                setConversations((prev) => [realConversation, ...prev])
+                setIsCreatingConversation(false)
+                
+            } catch (err) {
+                console.error('Failed to create conversation:', err)
+                setError('Impossible de créer la conversation')
+                setIsLoading(false)
+                setIsCreatingConversation(false)
+                return tempConvId
+            }
+            
+            // Générer les suggestions en parallèle
+            if (message.length > 20) {
+                Promise.resolve().then(() => generateContextualSuggestions(message)).catch(err => {
+                    console.error('Failed to generate suggestions:', err)
+                })
+            }
+            
+            // Commencer le streaming avec l'ID réel
+            try {
+                const streamCitations: Citation[] = []
+                let accumulatedContent = ""
+
+                const chatRequest: any = {
+                    conversation_id: realConversation.id,
+                    message: message,
+                    mode: (sendOptions.mode || 'rag_enhanced') as ChatMode,
+                    requested_sources: sendOptions.requestedSources || ["documents", "leases", "properties", "tenants", "kpis", "owners"],
+                    stream: true,
+                }
+                
+                if (sendOptions.documentIds) chatRequest.document_ids = sendOptions.documentIds
+                if (sendOptions.leaseIds) chatRequest.lease_ids = sendOptions.leaseIds
+                if (sendOptions.propertyIds) chatRequest.property_ids = sendOptions.propertyIds
+                
+                setIsStreaming(true)
+                abortControllerRef.current = new AbortController()
+                
+                await chatSDKService.streamChatMessage(chatRequest, {
+                    onChunk: (content) => {
+                        if (!content || typeof content !== 'string') return
+                        const cleanedContent = content.replace(/\[SOURCE:[^\]]+\]/g, '')
+                        accumulatedContent += cleanedContent
+                        setStreamingContent(accumulatedContent)
+                    },
+                    onCitation: (citation) => {
+                        const mappedCitation = {
+                            ...citation,
+                            source_type: citation.source_type as any,
+                        }
+                        streamCitations.push(mappedCitation)
+                        setCitations(prev => [...prev, mappedCitation])
+                    },
+                    onDone: () => {
+                        const finalCleanedContent = accumulatedContent.replace(/\[SOURCE:[^\]]+\]/g, '').trim()
+                        const assistantMessage: Message = {
+                            id: `msg-assistant-${Date.now()}`,
+                            conversation_id: realConversation.id,
+                            role: MessageRole.ASSISTANT,
+                            content: finalCleanedContent,
+                            citations: streamCitations,
+                            created_at: new Date().toISOString(),
+                        }
+                        setMessages(prev => [...prev, assistantMessage])
+                        setStreamingContent("")
+                        setIsLoading(false)
+                        setIsStreaming(false)
+                    },
+                    onError: (error) => {
+                        console.error('Streaming error:', error)
+                        setError(error)
+                        setIsLoading(false)
+                        setIsStreaming(false)
+                        setStreamingContent("")
+                    },
+                }, abortControllerRef.current?.signal)
+            } catch (err) {
+                console.error('Failed to send message:', err)
+                
+                if (err instanceof Error && err.name === 'AbortError') {
+                    if (streamingContent && realConversation) {
+                        const partialMessage: Message = {
+                            id: `msg-assistant-${Date.now()}`,
+                            conversation_id: realConversation.id,
+                            role: MessageRole.ASSISTANT,
+                            content: streamingContent,
+                            citations: [],
+                            created_at: new Date().toISOString(),
+                        }
+                        setMessages(prev => [...prev, partialMessage])
+                        generateContextualSuggestions(message)
+                    }
+                    
+                    setIsLoading(false)
+                    setIsStreaming(false)
+                    setStreamingContent("")
+                    return realConversation.id
+                }
+                
+                setError(err instanceof Error ? err.message : "Erreur lors de l'envoi du message")
+                setIsLoading(false)
+                setIsStreaming(false)
+                setStreamingContent("")
+            }
+            
+            return realConversation.id
+        },
+        [organizationId, updateConversationId, generateContextualSuggestions]
+    )
+
+    /**
      * Envoyer un message avec streaming
      */
     const sendUserMessage = useCallback(
@@ -366,7 +564,7 @@ export function useChatMvp(options: UseChatMvpOptions = {}): UseChatMvpReturn {
             
             // Créer une conversation AVANT d'afficher le message si nécessaire
             let currentConversation = conversation
-            if (!currentConversation) {
+            if (!currentConversation || currentConversation.id.startsWith('temp-')) {
                 try {
                     setIsLoading(true)
                     currentConversation = await createNewConversation(undefined, message)
@@ -626,11 +824,14 @@ export function useChatMvp(options: UseChatMvpOptions = {}): UseChatMvpReturn {
         loadConversations,
         selectConversation,
         createNewConversation,
+        createTemporaryConversation,
+        updateConversationId,
         renameConversation,
         removeConversation,
 
         // Messages
         sendUserMessage,
+        sendUserMessageWithTempConversation,
         clearMessages,
         resetConversation,
 
