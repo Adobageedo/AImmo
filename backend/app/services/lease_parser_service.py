@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger("app")
 
 from app.schemas.ocr import ParsedLease, ParsedParty
-from app.services.entity_matching_service import get_entity_matching_service
+# from app.services.entity_matching_service import get_entity_matching_service
 
 
 class LeaseParserService:
@@ -172,80 +172,7 @@ JSON:"""
             raise ValueError(f"Erreur lors du parsing LLM: {str(e)}")
     
     
-    async def parse_lease_with_entity_matching(self, text: str, db: Session) -> Dict[str, Any]:
-        """
-        Parse un bail avec LLM et fait correspondre les entités existantes
-        """
-        logger.info("🚀 [DEBUG] Starting lease parsing with entity matching")
-        
-        if not self.llm.is_configured:
-            raise ValueError(
-                "OPENAI_API_KEY n'est pas configuré. "
-                "Le parsing de bail nécessite une clé API OpenAI valide. "
-                "Veuillez configurer OPENAI_API_KEY dans votre fichier .env"
-            )
-        
-        # Étape 1: Parser le bail avec LLM
-        logger.info("🔍 [DEBUG] Step 1: Parsing lease with LLM")
-        parsed_lease = await self.parse_lease_with_llm(text)
-        logger.info(f"✅ [DEBUG] LLM parsing completed - Confidence: {parsed_lease.confidence:.3f}")
-        
-        # Étape 2: Convertir en dictionnaire pour le matching
-        logger.info("🔍 [DEBUG] Step 2: Converting parsed data for matching")
-        extracted_data = {
-            "property_address": parsed_lease.property_address,
-            "property_zip": parsed_lease.property_zip,
-            "property_city": parsed_lease.property_city,
-            "property_type": parsed_lease.property_type,
-            "surface_area": parsed_lease.surface_area,
-            "construction_year": parsed_lease.construction_year,
-            "last_renovation_year": parsed_lease.last_renovation_year,
-            "energy_class": parsed_lease.energy_class,
-            "ges_class": parsed_lease.ges_class,
-            "purchase_price": parsed_lease.purchase_price,
-            "purchase_date": parsed_lease.purchase_date.isoformat() if parsed_lease.purchase_date else None,
-            "current_value": parsed_lease.current_value,
-            "property_tax": parsed_lease.property_tax,
-            "start_date": parsed_lease.start_date.isoformat() if parsed_lease.start_date else None,
-            "end_date": parsed_lease.end_date.isoformat() if parsed_lease.end_date else None,
-            "monthly_rent": parsed_lease.monthly_rent,
-            "charges": parsed_lease.charges,
-            "deposit": parsed_lease.deposit,
-            "indexation_rate": parsed_lease.indexation_rate,
-            "key_clauses": parsed_lease.key_clauses,
-            "parties": [
-                {
-                    "type": party.type,
-                    "name": party.name,
-                    "address": party.address,
-                    "email": party.email
-                }
-                for party in parsed_lease.parties
-            ]
-        }
-        
-        logger.info(f"🔍 [DEBUG] Extracted data for matching: {extracted_data}")
-        
-        # Étape 3: Faire correspondre les entités
-        logger.info("🔍 [DEBUG] Step 3: Entity matching")
-        entity_service = get_entity_matching_service(db)
-        matching_results = entity_service.match_all_entities(extracted_data)
-        
-        # Étape 4: Combiner les résultats
-        logger.info("🔍 [DEBUG] Step 4: Combining results")
-        final_result = {
-            "parsed_lease": parsed_lease,
-            "matched_entities": matching_results["matched_entities"],
-            "form_data": matching_results["formData"],
-            "debug_info": matching_results["debug_info"],
-            "overall_confidence": parsed_lease.confidence
-        }
-        
-        logger.info(f"✅ [DEBUG] Lease parsing with entity matching completed")
-        logger.info(f"✅ [DEBUG] Matched entities: {final_result['matched_entities']}")
-        logger.info(f"✅ [DEBUG] Form data: {final_result['form_data']}")
-        
-        return final_result
+    # async def parse_lease_with_entity_matching method removed - use lease_enrichment_service instead
 
     async def parse_lease(self, text: str, use_llm: bool = True) -> ParsedLease:
         """Parse un bail avec LLM (requis)"""

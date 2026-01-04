@@ -5,14 +5,8 @@ Service pour faire correspondre les entités extraites par IA avec les entités 
 
 import logging
 from typing import List, Dict, Any, Optional
-from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_
 
-from app.core.database import get_db
-from app.models.property import Property
-from app.models.tenant import Tenant
-from app.models.landlord import Landlord
-from app.models.lease import Lease
+from app.core.supabase import get_supabase_client
 from app.core.security import get_current_user
 
 # Configuration du logging avancée
@@ -49,8 +43,8 @@ class EntityMatchResult:
 class EntityMatchingService:
     """Service pour faire correspondre les entités extraites avec les entités existantes"""
     
-    def __init__(self, db: Session):
-        self.db = db
+    def __init__(self):
+        self.supabase = get_supabase_client()
     
     def match_property(self, extracted_data: Dict[str, Any]) -> Optional[EntityMatchResult]:
         """
@@ -70,23 +64,26 @@ class EntityMatchingService:
                 logger.warning("⚠️ [DEBUG] No address found for property matching")
                 return None
             
-            # Rechercher des propriétés correspondantes
-            query = self.db.query(Property)
-            
-            # Recherche par adresse exacte ou partielle
-            conditions = []
-            if address:
-                conditions.append(Property.address.ilike(f"%{address}%"))
-            if zip_code:
-                conditions.append(Property.postal_code.ilike(f"%{zip_code}%"))
-            if city:
-                conditions.append(Property.city.ilike(f"%{city}%"))
-            
-            if conditions:
-                query = query.filter(or_(*conditions))
-            
-            properties = query.all()
-            logger.info(f"🔍 [DEBUG] Found {len(properties)} potential property matches")
+            # Rechercher des propriétés correspondantes via Supabase
+            try:
+                # Construire la requête Supabase
+                query = self.supabase.table('properties').select('*')
+                
+                # Ajouter des filtres si disponibles
+                if address:
+                    query = query.ilike('address', f'%{address}%')
+                if zip_code:
+                    query = query.ilike('postal_code', f'%{zip_code}%')
+                if city:
+                    query = query.ilike('city', f'%{city}%')
+                
+                response = query.execute()
+                properties = response.data if response.data else []
+                logger.info(f"🔍 [DEBUG] Found {len(properties)} potential property matches")
+                
+            except Exception as e:
+                logger.error(f"❌ [DEBUG] Error querying properties: {e}")
+                properties = []
             
             # Calculer le score de confiance pour chaque propriété
             best_match = None
@@ -97,42 +94,47 @@ class EntityMatchingService:
                 total_checks = 0
                 
                 # Vérifier l'adresse
-                if address and prop.address:
+                if address and prop.get('address'):
                     total_checks += 1
-                    if address.lower() in prop.address.lower() or prop.address.lower() in address.lower():
+                    prop_address = prop.get('address', '')
+                    if address.lower() in prop_address.lower() or prop_address.lower() in address.lower():
                         score += 0.6
-                        logger.info(f"🔍 [DEBUG] Address match: '{address}' vs '{prop.address}' - Score: +0.6")
+                        logger.info(f"🔍 [DEBUG] Address match: '{address}' vs '{prop_address}' - Score: +0.6")
                 
                 # Vérifier le code postal
-                if zip_code and prop.postal_code:
+                if zip_code and prop.get('postal_code'):
                     total_checks += 1
-                    if zip_code == prop.postal_code:
+                    prop_zip = prop.get('postal_code', '')
+                    if zip_code == prop_zip:
                         score += 0.3
-                        logger.info(f"🔍 [DEBUG] ZIP match: '{zip_code}' vs '{prop.postal_code}' - Score: +0.3")
-                    elif zip_code in prop.postal_code or prop.postal_code in zip_code:
+                        logger.info(f"🔍 [DEBUG] ZIP match: '{zip_code}' vs '{prop_zip}' - Score: +0.3")
+                    elif zip_code in prop_zip or prop_zip in zip_code:
                         score += 0.15
-                        logger.info(f"🔍 [DEBUG] Partial ZIP match: '{zip_code}' vs '{prop.postal_code}' - Score: +0.15")
+                        logger.info(f"🔍 [DEBUG] Partial ZIP match: '{zip_code}' vs '{prop_zip}' - Score: +0.15")
                 
                 # Vérifier la ville
-                if city and prop.city:
+                if city and prop.get('city'):
                     total_checks += 1
-                    if city.lower() == prop.city.lower():
+                    prop_city = prop.get('city', '')
+                    if city.lower() == prop_city.lower():
                         score += 0.1
-                        logger.info(f"🔍 [DEBUG] City match: '{city}' vs '{prop.city}' - Score: +0.1")
-                    elif city.lower() in prop.city.lower() or prop.city.lower() in city.lower():
+                        logger.info(f"🔍 [DEBUG] City match: '{city}' vs '{prop_city}' - Score: +0.1")
+                    elif city.lower() in prop_city.lower() or prop_city.lower() in city.lower():
                         score += 0.05
-                        logger.info(f"🔍 [DEBUG] Partial city match: '{city}' vs '{prop.city}' - Score: +0.05")
+                        logger.info(f"🔍 [DEBUG] Partial city match: '{city}' vs '{prop_city}' - Score: +0.05")
                 
                 # Normaliser le score
                 if total_checks > 0:
                     normalized_score = score / total_checks
-                    logger.info(f"🔍 [DEBUG] Property {prop.id} - Normalized score: {normalized_score:.3f}")
+                    logger.info(f"🔍 [DEBUG] Property {prop.get('id')} - Normalized score: {normalized_score:.3f}")
                     
                     if normalized_score > best_score:
                         best_score = normalized_score
+                        prop_id = prop.get('id', '')
+                        prop_address = prop.get('address', f"Property {prop_id}")
                         best_match = EntityMatchResult(
-                            entity_id=str(prop.id),
-                            name=prop.address or f"Property {prop.id}",
+                            entity_id=str(prop_id),
+                            name=prop_address,
                             confidence=normalized_score,
                             entity_type="property"
                         )
@@ -168,24 +170,21 @@ class EntityMatchingService:
                 logger.warning("⚠️ [DEBUG] No name found for landlord matching")
                 return None
             
-            # Rechercher des propriétaires correspondants
-            query = self.db.query(Landlord)
-            
-            # Recherche par nom (priorité haute)
-            conditions = [Landlord.name.ilike(f"%{name}%")]
-            
-            # Ajouter les autres critères si disponibles
-            if email:
-                conditions.append(Landlord.email.ilike(f"%{email}%"))
-            if phone:
-                conditions.append(Landlord.phone.ilike(f"%{phone}%"))
-            if address:
-                conditions.append(Landlord.address.ilike(f"%{address}%"))
-            
-            query = query.filter(or_(*conditions))
-            landlords = query.all()
-            
-            logger.info(f"🔍 [DEBUG] Found {len(landlords)} potential landlord matches")
+            # Rechercher des propriétaires correspondants via Supabase
+            try:
+                query = self.supabase.table('landlords').select('*')
+                if name:
+                    query = query.ilike('name', f'%{name}%')
+                if email:
+                    query = query.ilike('email', f'%{email}%')
+                
+                response = query.execute()
+                landlords = response.data if response.data else []
+                logger.info(f"🔍 [DEBUG] Found {len(landlords)} potential landlord matches")
+                
+            except Exception as e:
+                logger.error(f"❌ [DEBUG] Error querying landlords: {e}")
+                landlords = []
             
             # Calculer le score de confiance
             best_match = None
@@ -196,42 +195,42 @@ class EntityMatchingService:
                 total_checks = 0
                 
                 # Vérifier le nom (critère le plus important)
-                if name:
+                if name and landlord.get('name'):
                     total_checks += 1
                     name_lower = name.lower()
-                    landlord_name_lower = landlord.name.lower()
+                    landlord_name_lower = landlord.get('name', '').lower()
                     
                     if name_lower == landlord_name_lower:
                         score += 0.7
-                        logger.info(f"🔍 [DEBUG] Exact name match: '{name}' vs '{landlord.name}' - Score: +0.7")
+                        logger.info(f"🔍 [DEBUG] Exact name match: '{name}' vs '{landlord.get('name')}' - Score: +0.7")
                     elif name_lower in landlord_name_lower or landlord_name_lower in name_lower:
                         score += 0.4
-                        logger.info(f"🔍 [DEBUG] Partial name match: '{name}' vs '{landlord.name}' - Score: +0.4")
+                        logger.info(f"🔍 [DEBUG] Partial name match: '{name}' vs '{landlord.get('name')}' - Score: +0.4")
                 
                 # Vérifier l'email
-                if email and landlord.email:
+                if email and landlord.get('email'):
                     total_checks += 1
-                    if email.lower() == landlord.email.lower():
+                    if email.lower() == landlord.get('email', '').lower():
                         score += 0.2
-                        logger.info(f"🔍 [DEBUG] Exact email match: '{email}' vs '{landlord.email}' - Score: +0.2")
+                        logger.info(f"🔍 [DEBUG] Exact email match: '{email}' vs '{landlord.get('email')}' - Score: +0.2")
                 
                 # Vérifier le téléphone
-                if phone and landlord.phone:
+                if phone and landlord.get('phone'):
                     total_checks += 1
-                    if phone.replace(" ", "") == landlord.phone.replace(" ", ""):
+                    if phone.replace(" ", "") == landlord.get('phone', '').replace(" ", ""):
                         score += 0.1
-                        logger.info(f"🔍 [DEBUG] Exact phone match: '{phone}' vs '{landlord.phone}' - Score: +0.1")
+                        logger.info(f"🔍 [DEBUG] Exact phone match: '{phone}' vs '{landlord.get('phone')}' - Score: +0.1")
                 
                 # Normaliser le score
                 if total_checks > 0:
                     normalized_score = score / total_checks
-                    logger.info(f"🔍 [DEBUG] Landlord {landlord.id} - Normalized score: {normalized_score:.3f}")
+                    logger.info(f"🔍 [DEBUG] Landlord {landlord.get('id')} - Normalized score: {normalized_score:.3f}")
                     
                     if normalized_score > best_score:
                         best_score = normalized_score
                         best_match = EntityMatchResult(
-                            entity_id=str(landlord.id),
-                            name=landlord.name,
+                            entity_id=str(landlord.get('id')),
+                            name=landlord.get('name'),
                             confidence=normalized_score,
                             entity_type="landlord"
                         )
@@ -267,24 +266,21 @@ class EntityMatchingService:
                 logger.warning("⚠️ [DEBUG] No name found for tenant matching")
                 return None
             
-            # Rechercher des locataires correspondants
-            query = self.db.query(Tenant)
-            
-            # Recherche par nom (priorité haute)
-            conditions = [Tenant.name.ilike(f"%{name}%")]
-            
-            # Ajouter les autres critères si disponibles
-            if email:
-                conditions.append(Tenant.email.ilike(f"%{email}%"))
-            if phone:
-                conditions.append(Tenant.phone.ilike(f"%{phone}%"))
-            if address:
-                conditions.append(Tenant.address.ilike(f"%{address}%"))
-            
-            query = query.filter(or_(*conditions))
-            tenants = query.all()
-            
-            logger.info(f"🔍 [DEBUG] Found {len(tenants)} potential tenant matches")
+            # Rechercher des locataires correspondants via Supabase
+            try:
+                query = self.supabase.table('tenants').select('*')
+                if name:
+                    query = query.ilike('name', f'%{name}%')
+                if email:
+                    query = query.ilike('email', f'%{email}%')
+                
+                response = query.execute()
+                tenants = response.data if response.data else []
+                logger.info(f"🔍 [DEBUG] Found {len(tenants)} potential tenant matches")
+                
+            except Exception as e:
+                logger.error(f"❌ [DEBUG] Error querying tenants: {e}")
+                tenants = []
             
             # Calculer le score de confiance
             best_match = None
@@ -295,42 +291,42 @@ class EntityMatchingService:
                 total_checks = 0
                 
                 # Vérifier le nom (critère le plus important)
-                if name:
+                if name and tenant.get('name'):
                     total_checks += 1
                     name_lower = name.lower()
-                    tenant_name_lower = tenant.name.lower()
+                    tenant_name_lower = tenant.get('name', '').lower()
                     
                     if name_lower == tenant_name_lower:
                         score += 0.7
-                        logger.info(f"🔍 [DEBUG] Exact name match: '{name}' vs '{tenant.name}' - Score: +0.7")
+                        logger.info(f"🔍 [DEBUG] Exact name match: '{name}' vs '{tenant.get('name')}' - Score: +0.7")
                     elif name_lower in tenant_name_lower or tenant_name_lower in name_lower:
                         score += 0.4
-                        logger.info(f"🔍 [DEBUG] Partial name match: '{name}' vs '{tenant.name}' - Score: +0.4")
+                        logger.info(f"🔍 [DEBUG] Partial name match: '{name}' vs '{tenant.get('name')}' - Score: +0.4")
                 
                 # Vérifier l'email
-                if email and tenant.email:
+                if email and tenant.get('email'):
                     total_checks += 1
-                    if email.lower() == tenant.email.lower():
+                    if email.lower() == tenant.get('email', '').lower():
                         score += 0.2
-                        logger.info(f"🔍 [DEBUG] Exact email match: '{email}' vs '{tenant.email}' - Score: +0.2")
+                        logger.info(f"🔍 [DEBUG] Exact email match: '{email}' vs '{tenant.get('email')}' - Score: +0.2")
                 
                 # Vérifier le téléphone
-                if phone and tenant.phone:
+                if phone and tenant.get('phone'):
                     total_checks += 1
-                    if phone.replace(" ", "") == tenant.phone.replace(" ", ""):
+                    if phone.replace(" ", "") == tenant.get('phone', '').replace(" ", ""):
                         score += 0.1
-                        logger.info(f"🔍 [DEBUG] Exact phone match: '{phone}' vs '{tenant.phone}' - Score: +0.1")
+                        logger.info(f"🔍 [DEBUG] Exact phone match: '{phone}' vs '{tenant.get('phone')}' - Score: +0.1")
                 
                 # Normaliser le score
                 if total_checks > 0:
                     normalized_score = score / total_checks
-                    logger.info(f"🔍 [DEBUG] Tenant {tenant.id} - Normalized score: {normalized_score:.3f}")
+                    logger.info(f"🔍 [DEBUG] Tenant {tenant.get('id')} - Normalized score: {normalized_score:.3f}")
                     
                     if normalized_score > best_score:
                         best_score = normalized_score
                         best_match = EntityMatchResult(
-                            entity_id=str(tenant.id),
-                            name=tenant.name,
+                            entity_id=str(tenant.get('id')),
+                            name=tenant.get('name'),
                             confidence=normalized_score,
                             entity_type="tenant"
                         )
@@ -456,6 +452,6 @@ class EntityMatchingService:
         return results
 
 # Fonction utilitaire pour obtenir le service
-def get_entity_matching_service(db: Session) -> EntityMatchingService:
+def get_entity_matching_service() -> EntityMatchingService:
     """Obtenir une instance du service de matching d'entités"""
-    return EntityMatchingService(db)
+    return EntityMatchingService()
