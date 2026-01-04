@@ -25,28 +25,34 @@ import { createClient } from "./supabase/client"
 // ============================================
 
 export const DEFAULT_CHUNKING_CONFIGS: Record<SourceType, ChunkingConfig> = {
-    [SourceType.DOCUMENT]: {
-        source_type: SourceType.DOCUMENT,
+    [SourceType.DOCUMENTS]: {
+        source_type: SourceType.DOCUMENTS,
         chunk_size: 512,
         chunk_overlap: 50,
         chunking_method: ChunkingMethod.RECURSIVE,
         separators: ["\n\n", "\n", ". ", " "],
     },
-    [SourceType.LEASE]: {
-        source_type: SourceType.LEASE,
+    [SourceType.LEASES]: {
+        source_type: SourceType.LEASES,
         chunk_size: 768,
         chunk_overlap: 100,
         chunking_method: ChunkingMethod.SEMANTIC,
         separators: ["\n\nArticle", "\n\nChapitre", "\n\n", "\n"],
     },
-    [SourceType.PROPERTY]: {
-        source_type: SourceType.PROPERTY,
+    [SourceType.PROPERTIES]: {
+        source_type: SourceType.PROPERTIES,
         chunk_size: 256,
         chunk_overlap: 25,
         chunking_method: ChunkingMethod.PARAGRAPH,
     },
-    [SourceType.TENANT]: {
-        source_type: SourceType.TENANT,
+    [SourceType.TENANTS]: {
+        source_type: SourceType.TENANTS,
+        chunk_size: 256,
+        chunk_overlap: 25,
+        chunking_method: ChunkingMethod.PARAGRAPH,
+    },
+    [SourceType.OWNERS]: {
+        source_type: SourceType.OWNERS,
         chunk_size: 256,
         chunk_overlap: 25,
         chunking_method: ChunkingMethod.PARAGRAPH,
@@ -56,12 +62,6 @@ export const DEFAULT_CHUNKING_CONFIGS: Record<SourceType, ChunkingConfig> = {
         chunk_size: 128,
         chunk_overlap: 0,
         chunking_method: ChunkingMethod.FIXED_SIZE,
-    },
-    [SourceType.CONVERSATION]: {
-        source_type: SourceType.CONVERSATION,
-        chunk_size: 1024,
-        chunk_overlap: 200,
-        chunking_method: ChunkingMethod.SENTENCE,
     },
 }
 
@@ -467,7 +467,7 @@ export async function createChunksFromDocument(
     content: string,
     metadata: Partial<ChunkMetadata>,
     organizationId: string,
-    sourceType: SourceType = SourceType.DOCUMENT,
+    sourceType: SourceType = SourceType.DOCUMENTS,
     config?: ChunkingConfig
 ): Promise<Omit<Chunk, "id" | "created_at" | "updated_at">[]> {
     const chunkConfig = config || DEFAULT_CHUNKING_CONFIGS[sourceType]
@@ -582,7 +582,7 @@ export async function indexDocument(
     content: string,
     metadata: Partial<ChunkMetadata>,
     organizationId: string,
-    sourceType: SourceType = SourceType.DOCUMENT
+    sourceType: SourceType = SourceType.DOCUMENTS
 ): Promise<DocumentIndexStatus> {
     const supabase = createClient()
 
@@ -807,12 +807,12 @@ export async function getRAGStats(organizationId: string): Promise<RAGStats | nu
         if (error) throw error
 
         const chunksBySource: Record<SourceType, number> = {
-            [SourceType.DOCUMENT]: 0,
-            [SourceType.LEASE]: 0,
-            [SourceType.PROPERTY]: 0,
-            [SourceType.TENANT]: 0,
+            [SourceType.DOCUMENTS]: 0,
+            [SourceType.LEASES]: 0,
+            [SourceType.PROPERTIES]: 0,
+            [SourceType.TENANTS]: 0,
+            [SourceType.OWNERS]: 0,
             [SourceType.KPI]: 0,
-            [SourceType.CONVERSATION]: 0,
         }
 
         let excludedCount = 0
