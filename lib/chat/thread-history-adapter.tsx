@@ -22,30 +22,53 @@ export function useThreadHistoryAdapter(): ThreadHistoryAdapter {
           const { remoteId } = aui.threadListItem().getState();
           
           if (!remoteId) {
+            console.log("📭 DEBUG: No remoteId, returning empty messages");
             return { messages: [] };
           }
+
+          console.log(`📥 DEBUG: Loading messages for thread ${remoteId}`);
 
           // Récupérer les messages depuis l'API
           const response = await fetch(`/api/threads/${remoteId}/messages`);
           
           if (!response.ok) {
-            console.error("Failed to load messages");
+            console.error("❌ DEBUG: Failed to load messages:", response.statusText);
             return { messages: [] };
           }
 
           const { messages } = await response.json();
+          console.log(`✅ DEBUG: Loaded ${messages?.length || 0} messages from API`);
 
-          // Convertir au format assistant-ui
-          return {
-            messages: messages.map((msg: any) => ({
+          if (!messages || messages.length === 0) {
+            return { messages: [] };
+          }
+
+          // Convertir au format assistant-ui avec wrapping correct
+          const convertedMessages = messages.map((msg: any, index: number) => {
+            console.log(`🔄 DEBUG: Converting message ${index}:`, {
               id: msg.id,
               role: msg.role,
-              content: msg.content,
-              createdAt: new Date(msg.created_at),
-            })),
+              hasContent: !!msg.content,
+            });
+
+            return {
+              message: {
+                id: msg.id || `msg-${index}`,
+                role: msg.role,
+                content: msg.content,
+                createdAt: msg.created_at ? new Date(msg.created_at) : new Date(),
+              },
+              parentId: index > 0 ? messages[index - 1].id : null,
+            };
+          });
+
+          console.log(`✅ DEBUG: Converted ${convertedMessages.length} messages`);
+
+          return {
+            messages: convertedMessages,
           };
         } catch (error) {
-          console.error("Error loading messages:", error);
+          console.error("❌ DEBUG: Error loading messages:", error);
           return { messages: [] };
         }
       },

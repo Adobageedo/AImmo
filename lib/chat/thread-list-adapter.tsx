@@ -1,3 +1,4 @@
+import { ThreadProvider } from "@/components/assistant-ui/threadprovider";
 import type { unstable_RemoteThreadListAdapter as RemoteThreadListAdapter } from "@assistant-ui/react";
 import { createAssistantStream } from "assistant-stream";
 
@@ -138,4 +139,5 @@ export const threadListAdapter: RemoteThreadListAdapter = {
       controller.appendText(title);
     });
   },
+  unstable_Provider: ThreadProvider,
 };

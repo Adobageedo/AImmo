@@ -10,6 +10,7 @@ import {
   type RemoteThreadListAdapter,
 } from "@assistant-ui/react";
 import { useChatRuntime } from "@assistant-ui/react-ai-sdk";
+import { createAssistantStream } from "assistant-stream";
 import { appToolkit } from "@/lib/tools";
 import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
 import { threadListAdapter } from "@/lib/chat/thread-list-adapter";

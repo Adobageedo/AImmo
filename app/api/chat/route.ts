@@ -1,39 +1,30 @@
 import { openai } from "@ai-sdk/openai";
 import { frontendTools } from "@assistant-ui/react-ai-sdk";
 import {
-  JSONSchema7,
   streamText,
+  UIMessage,
   convertToModelMessages,
-  type UIMessage,
+  tool,
+  stepCountIs,
+  zodSchema,
+  JSONSchema7,
 } from "ai";
+import { z } from "zod";
+
+// Allow streaming responses up to 30 seconds
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const {
-    messages,
-    system,
-    tools,
-  }: {
-    messages: UIMessage[];
-    system?: string;
-    tools?: Record<string, { description?: string; parameters: JSONSchema7 }>;
-  } = await req.json();
+  const { messages, tools }: { messages: UIMessage[]; tools?: Record<string, { description?: string; parameters: JSONSchema7 }> } = await req.json();
+
 
   const result = streamText({
-    model: openai.responses("gpt-5-nano"),
+    model: openai("gpt-4o"),
     messages: await convertToModelMessages(messages),
-    system,
     tools: {
       ...frontendTools(tools ?? {}),
     },
-    providerOptions: {
-      openai: {
-        reasoningEffort: "low",
-        reasoningSummary: "auto",
-      },
-    },
   });
 
-  return result.toUIMessageStreamResponse({
-    sendReasoning: true,
-  });
+  return result.toUIMessageStreamResponse();
 }

@@ -8,7 +8,7 @@ import { ThreadListSidebar } from "@/components/assistant-ui/threadlist-sidebar"
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Navbar } from "@/components/layout/navbar";
 import { LeaseSearchToolUIComponent } from "@/components/assistant-ui/tools/LeaseSearchToolUIComponent";
-import { ChatRuntimeProvider } from "@/components/chat/ChatRuntimeProvider";
+import { MyRuntimeProvider as ChatRuntimeProvider } from "@/components/chat/ChatRuntimeProvider";
 
 export const Assistant = () => {
   return (

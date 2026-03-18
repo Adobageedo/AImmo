@@ -43,4 +43,5 @@ next-env.d.ts
 # Turborepo
 .turbo
 
-/AImmold
+/AImmoold
+/aatest
