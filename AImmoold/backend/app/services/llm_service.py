@@ -1,0 +1,113 @@
+import json
+from typing import Any, Dict, Optional, List, Union
+from openai import AsyncOpenAI
+from app.core.config import settings
+import logging
+logger = logging.getLogger("app")
+
+class LLMService:
+    def __init__(self):
+        self.api_key = settings.OPENAI_API_KEY
+        self._client = None
+
+    @property
+    def is_configured(self) -> bool:
+        return bool(self.api_key)
+
+    @property
+    def client(self) -> AsyncOpenAI:
+        if not self._client:
+            if not self.api_key:
+                raise ValueError("OPENAI_API_KEY is not configured")
+            self._client = AsyncOpenAI(api_key=self.api_key)
+        return self._client
+
+    async def get_completion(
+        self,
+        prompt: str,
+        system_prompt: str = "You are a helpful assistant.",
+        model: str = settings.DEFAULT_LLM_MODEL,
+        temperature: float = settings.DEFAULT_LLM_TEMPERATURE,
+        max_tokens: int = settings.DEFAULT_LLM_MAX_TOKENS,
+        response_format: Optional[Dict[str, str]] = None,
+    ) -> str:
+        """
+        Get a completion from the LLM.
+        """
+        try:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+            
+            kwargs = {
+                "model": model,
+                "messages": messages,
+            }
+            
+            # Certains modèles (o1, gpt-5+) utilisent max_completion_tokens au lieu de max_tokens
+            # o1 models ne supportent pas le paramètre temperature
+            is_o1_model = model.lower().startswith("o1")
+            is_gpt5_or_higher = "gpt-5" in model.lower() or "gpt-6" in model.lower()
+            
+            if is_gpt5_or_higher:
+                # GPT-5+ utilise max_completion_tokens mais supporte temperature
+                kwargs["max_completion_tokens"] = max_tokens
+                kwargs["temperature"] = temperature
+            elif is_o1_model:
+                # o1 utilise max_completion_tokens et ne supporte pas temperature
+                kwargs["max_completion_tokens"] = max_tokens
+            else:
+                # Modèles standards (GPT-4, etc.)
+                kwargs["max_tokens"] = max_tokens
+                kwargs["temperature"] = temperature
+            
+            if response_format:
+                kwargs["response_format"] = response_format
+
+            response = await self.client.chat.completions.create(**kwargs)
+            return response.choices[0].message.content
+        except Exception as e:
+            raise Exception(f"Error calling LLM: {str(e)}")
+
+    async def get_json_completion(
+        self,
+        prompt: str,
+        system_prompt: str = "You are a helpful assistant that only outputs JSON.",
+        model: str = settings.DEFAULT_LLM_MODEL,
+        temperature: float = settings.DEFAULT_LLM_TEMPERATURE,
+        max_tokens: int = settings.DEFAULT_LLM_MAX_TOKENS,
+    ) -> Dict[str, Any]:
+        """
+        Get a JSON completion from the LLM.
+        """
+        
+        try:
+            content = await self.get_completion(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                response_format={"type": "json_object"}
+            )
+            if not content or not content.strip():
+                logger.error("DEBUG: LLM returned an empty response")
+                raise Exception("LLM returned an empty response")
+            
+            try:
+                result = json.loads(content)
+                return result
+            except json.JSONDecodeError as e:
+                logger.error(f"DEBUG: Failed to parse JSON. Content starts with: {content[:100]}...")
+                logger.error(f"DEBUG: JSON error: {str(e)}")
+                raise Exception(f"Failed to parse LLM response as JSON: {str(e)}")
+                
+        except Exception as e:
+            logger.error(f"DEBUG: Error in get_json_completion: {str(e)}")
+            logger.error(f"DEBUG: Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"DEBUG: Traceback: {traceback.format_exc()}")
+            raise
+
+llm_service = LLMService()

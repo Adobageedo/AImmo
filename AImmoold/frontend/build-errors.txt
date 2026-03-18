@@ -1,0 +1,92 @@
+﻿
+> aimmo-frontend@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.1.3
+   - Environments: .env
+
+   Creating an optimized production build ...
+node.exe : <w> [webpack.cache
+.PackFileCacheStrategy] 
+Serializing big strings 
+(130kiB) impacts 
+deserialization performance 
+(consider using Buffer 
+instead and decode when 
+needed)
+Au caractère C:\Program 
+Files\nodejs\npm.ps1:29 : 3
++   & $NODE_EXE $NPM_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (<w> [we  
+  bpack.ca...de when neede   
+ d):String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+ ÔÜá Compiled with warnings
+
+./node_modules/@supabase/real
+time-js/dist/module/lib/webso
+cket-factory.js
+A Node.js API is used 
+(process.versions at line: 
+39) which is not supported 
+in the Edge Runtime.
+Learn more: https://nextjs.or
+g/docs/api-reference/edge-run
+time
+
+Import trace for requested 
+module:
+./node_modules/@supabase/real
+time-js/dist/module/lib/webso
+cket-factory.js
+./node_modules/@supabase/real
+time-js/dist/module/index.js
+./node_modules/@supabase/supa
+base-js/dist/index.mjs
+./node_modules/@supabase/auth
+-helpers-shared/dist/index.mj
+s
+./node_modules/@supabase/auth
+-helpers-nextjs/dist/index.js
+
+./node_modules/@supabase/supa
+base-js/dist/index.mjs
+A Node.js API is used 
+(process.version at line: 
+395) which is not supported 
+in the Edge Runtime.
+Learn more: https://nextjs.or
+g/docs/api-reference/edge-run
+time
+
+Import trace for requested 
+module:
+./node_modules/@supabase/supa
+base-js/dist/index.mjs
+./node_modules/@supabase/auth
+-helpers-shared/dist/index.mj
+s
+./node_modules/@supabase/auth
+-helpers-nextjs/dist/index.js
+
+ Ô£ô Compiled successfully
+   Linting and checking validity of types ...
+ Ô¿» ESLint must be 
+installed in order to run 
+during builds: npm install 
+--save-dev eslint
+   Collecting page data ...
+unhandledRejection [Error 
+[PageNotFoundError]: Cannot 
+find module for page: 
+/_document] {
+  type: 'PageNotFoundError',
+  code: 'ENOENT'
+}

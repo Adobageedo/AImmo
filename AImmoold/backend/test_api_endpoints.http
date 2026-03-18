@@ -1,0 +1,355 @@
+###
+# AImmo API - Tests des Endpoints
+# Utiliser avec REST Client (VS Code) ou HTTPie
+###
+
+@baseUrl = http://localhost:8000/api/v1
+@token = YOUR_TOKEN_HERE
+@orgId = YOUR_ORG_ID_HERE
+@propertyId = YOUR_PROPERTY_ID_HERE
+@documentId = YOUR_DOCUMENT_ID_HERE
+
+###############################################
+# 1. HEALTH CHECK
+###############################################
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Root
+GET http://localhost:8000/
+
+###############################################
+# 2. AUTHENTICATION
+###############################################
+
+### Signup
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "newuser@example.com",
+  "password": "SecurePassword123!",
+  "organization_name": "My Company"
+}
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Get Current User
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+###############################################
+# 3. ORGANIZATIONS
+###############################################
+
+### List Organizations
+GET {{baseUrl}}/organizations
+Authorization: Bearer {{token}}
+
+### Get Organization
+GET {{baseUrl}}/organizations/{{orgId}}
+Authorization: Bearer {{token}}
+
+### Update Organization
+PUT {{baseUrl}}/organizations/{{orgId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Company Name"
+}
+
+###############################################
+# 4. PROPERTIES
+###############################################
+
+### Create Property
+POST {{baseUrl}}/properties
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Appartement Paris 15",
+  "address": "123 rue de Vaugirard",
+  "city": "Paris",
+  "postal_code": "75015",
+  "country": "France",
+  "property_type": "appartement",
+  "surface_area": 65.5,
+  "rooms": 3,
+  "bedrooms": 2,
+  "bathrooms": 1,
+  "organization_id": "{{orgId}}"
+}
+
+### List Properties
+GET {{baseUrl}}/properties?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+### Get Property
+GET {{baseUrl}}/properties/{{propertyId}}?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+### Update Property
+PUT {{baseUrl}}/properties/{{propertyId}}?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Appartement Paris 15 - Rénové",
+  "surface_area": 70.0,
+  "rooms": 4
+}
+
+### Delete Property
+DELETE {{baseUrl}}/properties/{{propertyId}}?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+###############################################
+# 5. TENANTS
+###############################################
+
+### Create Tenant
+POST {{baseUrl}}/tenants
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Jean Dupont",
+  "tenant_type": "particulier",
+  "email": "jean.dupont@example.com",
+  "phone": "0612345678",
+  "organization_id": "{{orgId}}"
+}
+
+### List Tenants
+GET {{baseUrl}}/tenants?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+###############################################
+# 6. LEASES
+###############################################
+
+### Create Lease
+POST {{baseUrl}}/leases
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "property_id": "{{propertyId}}",
+  "tenant_id": "TENANT_ID_HERE",
+  "organization_id": "{{orgId}}",
+  "start_date": "2024-01-01",
+  "end_date": "2025-01-01",
+  "monthly_rent": 1500.00,
+  "charges": 200.00,
+  "deposit": 3000.00,
+  "indexation_rate": 3.5
+}
+
+### List Leases
+GET {{baseUrl}}/leases?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+###############################################
+# 7. DOCUMENTS
+###############################################
+
+### Get Storage Quota
+GET {{baseUrl}}/documents/quota?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+### Upload Document
+POST {{baseUrl}}/documents/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="file"; filename="bail.pdf"
+Content-Type: application/pdf
+
+< ./test_files/bail.pdf
+------WebKitFormBoundary
+Content-Disposition: form-data; name="organization_id"
+
+{{orgId}}
+------WebKitFormBoundary
+Content-Disposition: form-data; name="title"
+
+Bail Appartement Paris
+------WebKitFormBoundary
+Content-Disposition: form-data; name="document_type"
+
+bail
+------WebKitFormBoundary
+Content-Disposition: form-data; name="folder_path"
+
+/baux/2024
+------WebKitFormBoundary--
+
+### List Documents
+GET {{baseUrl}}/documents?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+### List Documents by Type
+GET {{baseUrl}}/documents?organization_id={{orgId}}&document_type=bail
+Authorization: Bearer {{token}}
+
+### List Documents by Folder
+GET {{baseUrl}}/documents?organization_id={{orgId}}&folder_path=/baux/2024
+Authorization: Bearer {{token}}
+
+### Get Document
+GET {{baseUrl}}/documents/{{documentId}}?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+### Update Document
+PUT {{baseUrl}}/documents/{{documentId}}?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Bail Appartement Paris - Mis à jour",
+  "tags": ["urgent", "2024"],
+  "description": "Bail principal"
+}
+
+### Get Download URL
+GET {{baseUrl}}/documents/{{documentId}}/download-url?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+### Delete Document
+DELETE {{baseUrl}}/documents/{{documentId}}?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+###############################################
+# 8. DOCUMENT PROCESSING (OCR & Parsing)
+###############################################
+
+### Process Document
+POST {{baseUrl}}/processing/process
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "document_id": "{{documentId}}",
+  "organization_id": "{{orgId}}",
+  "ocr_provider": "hybrid",
+  "force_reprocess": false
+}
+
+### Get Processing Result
+GET {{baseUrl}}/processing/PROCESSING_ID_HERE
+Authorization: Bearer {{token}}
+
+### Get Processing by Document
+GET {{baseUrl}}/processing/document/{{documentId}}
+Authorization: Bearer {{token}}
+
+### Validate and Create Entities
+POST {{baseUrl}}/processing/validate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "processing_id": "PROCESSING_ID_HERE",
+  "organization_id": "{{orgId}}",
+  "create_entities": true,
+  "validated_data": {
+    "parties": [
+      {
+        "type": "landlord",
+        "name": "Propriétaire SA",
+        "email": "contact@proprietaire.fr",
+        "phone": "0123456789"
+      },
+      {
+        "type": "tenant",
+        "name": "Jean Dupont",
+        "email": "jean.dupont@example.com",
+        "phone": "0612345678"
+      }
+    ],
+    "property_address": "123 rue de Vaugirard, 75015 Paris",
+    "property_type": "appartement",
+    "surface_area": 65.5,
+    "start_date": "2024-01-01",
+    "end_date": "2025-01-01",
+    "monthly_rent": 1500.00,
+    "charges": 200.00,
+    "deposit": 3000.00,
+    "key_clauses": [
+      "Bail de 12 mois renouvelable",
+      "Préavis de 3 mois"
+    ],
+    "confidence": 0.85,
+    "raw_data": {}
+  }
+}
+
+###############################################
+# 9. CONVERSATIONS (RAG)
+###############################################
+
+### Create Conversation
+POST {{baseUrl}}/conversations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "organization_id": "{{orgId}}",
+  "title": "Questions sur mes baux"
+}
+
+### List Conversations
+GET {{baseUrl}}/conversations?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+### Get Conversation
+GET {{baseUrl}}/conversations/CONVERSATION_ID_HERE?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+### Send Message
+POST {{baseUrl}}/conversations/CONVERSATION_ID_HERE/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "organization_id": "{{orgId}}",
+  "content": "Quels sont mes baux actifs?",
+  "context_filters": {
+    "document_types": ["bail"],
+    "property_ids": []
+  }
+}
+
+### Delete Conversation
+DELETE {{baseUrl}}/conversations/CONVERSATION_ID_HERE?organization_id={{orgId}}
+Authorization: Bearer {{token}}
+
+###############################################
+# 10. ADVANCED QUERIES
+###############################################
+
+### Search Documents with Multiple Filters
+GET {{baseUrl}}/documents?organization_id={{orgId}}&document_type=bail&property_id={{propertyId}}&folder_path=/baux
+Authorization: Bearer {{token}}
+
+### Get Organization Stats (si endpoint existe)
+GET {{baseUrl}}/organizations/{{orgId}}/stats
+Authorization: Bearer {{token}}
+
+###
+# Notes:
+# - Remplacer {{token}}, {{orgId}}, {{propertyId}}, etc. par vos valeurs
+# - Pour upload de fichiers, créer un dossier test_files/ avec des PDFs de test
+# - Les endpoints peuvent varier selon votre implémentation
+###

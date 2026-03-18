@@ -1,0 +1,187 @@
+/* Parsing Validation BEM Styles Module */
+
+/* Main container */
+.parsing-validation {
+    @apply space-y-6;
+}
+
+/* Header */
+.parsing-validation__header {
+    @apply flex items-center justify-between pb-4 border-b;
+}
+
+.parsing-validation__title {
+    @apply text-xl font-semibold text-gray-900;
+}
+
+.parsing-validation__confidence {
+    @apply flex items-center gap-2;
+}
+
+.parsing-validation__confidence-label {
+    @apply text-sm text-gray-500;
+}
+
+/* Sections */
+.parsing-validation__section {
+    @apply border rounded-xl overflow-hidden;
+}
+
+.parsing-validation__section-header {
+    @apply flex items-center justify-between w-full p-4 bg-gray-50 text-left font-medium text-gray-900 hover:bg-gray-100 transition-colors;
+}
+
+/* Fields */
+.parsing-validation__fields {
+    @apply divide-y;
+}
+
+.parsing-validation__field {
+    @apply p-4 space-y-2;
+}
+
+.parsing-validation__field-header {
+    @apply flex items-center justify-between;
+}
+
+.parsing-validation__field-label {
+    @apply text-sm font-medium text-gray-700;
+}
+
+.parsing-validation__field-confidence {
+    @apply text-xs px-2 py-0.5 rounded-full;
+}
+
+.parsing-validation__field-value {
+    @apply flex items-center justify-between gap-2;
+}
+
+.parsing-validation__field-value--validated {
+    @apply text-green-700 font-medium;
+}
+
+.parsing-validation__field-edit {
+    @apply flex items-center gap-2;
+}
+
+.parsing-validation__field-error {
+    @apply flex items-center gap-1 text-xs text-red-600;
+}
+
+/* Parties */
+.parsing-validation__parties {
+    @apply p-4 grid gap-4 md:grid-cols-2;
+}
+
+.parsing-validation__party {
+    @apply p-4 border rounded-lg space-y-2;
+}
+
+.parsing-validation__party-header {
+    @apply flex items-center justify-between;
+}
+
+.parsing-validation__party-confidence {
+    @apply text-xs text-gray-500;
+}
+
+.parsing-validation__party-name {
+    @apply font-medium text-gray-900;
+}
+
+.parsing-validation__party-company {
+    @apply text-gray-500 font-normal ml-1;
+}
+
+.parsing-validation__party-address {
+    @apply text-sm text-gray-600;
+}
+
+.parsing-validation__party-contact {
+    @apply flex flex-col gap-1 text-sm text-gray-500;
+}
+
+/* Clauses */
+.parsing-validation__clauses {
+    @apply p-4 space-y-2;
+}
+
+.parsing-validation__clause {
+    @apply p-3 bg-gray-50 rounded-lg text-sm text-gray-700;
+}
+
+/* Actions */
+.parsing-validation__actions {
+    @apply space-y-4 pt-4 border-t;
+}
+
+.parsing-validation__checkbox {
+    @apply flex items-center gap-2 text-sm text-gray-600 cursor-pointer;
+}
+
+.parsing-validation__checkbox input {
+    @apply w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500;
+}
+
+.parsing-validation__buttons {
+    @apply flex items-center justify-end gap-2;
+}
+
+/* Progress indicator */
+.parsing-progress {
+    @apply space-y-4;
+}
+
+.parsing-progress__bar {
+    @apply h-2 bg-gray-100 rounded-full overflow-hidden;
+}
+
+.parsing-progress__fill {
+    @apply h-full rounded-full transition-all duration-300;
+    background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.parsing-progress__status {
+    @apply flex items-center justify-between text-sm;
+}
+
+.parsing-progress__label {
+    @apply text-gray-700 font-medium;
+}
+
+.parsing-progress__percent {
+    @apply text-gray-500;
+}
+
+/* Status indicators */
+.parsing-status {
+    @apply flex items-center gap-2;
+}
+
+.parsing-status__icon {
+    @apply h-5 w-5;
+}
+
+.parsing-status__icon--pending {
+    @apply text-gray-400;
+}
+
+.parsing-status__icon--processing {
+    @apply text-blue-500 animate-spin;
+}
+
+.parsing-status__icon--review {
+    @apply text-yellow-500;
+}
+
+.parsing-status__icon--completed {
+    @apply text-green-500;
+}
+
+.parsing-status__icon--failed {
+    @apply text-red-500;
+}
+
+.parsing-status__text {
+    @apply text-sm font-medium;
+}

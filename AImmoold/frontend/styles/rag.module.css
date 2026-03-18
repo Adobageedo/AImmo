@@ -1,0 +1,689 @@
+/* ==============================================
+   RAG Module Styles - Phase 4 Foundation
+   BEM Methodology
+   ============================================== */
+
+/* Variables locales */
+.rag-container {
+    --rag-primary: #6366f1;
+    --rag-primary-hover: #4f46e5;
+    --rag-success: #22c55e;
+    --rag-warning: #f59e0b;
+    --rag-danger: #ef4444;
+    --rag-muted: #6b7280;
+    --rag-border: #e5e7eb;
+    --rag-bg: #ffffff;
+    --rag-bg-hover: #f9fafb;
+    --rag-bg-active: #f3f4f6;
+    --rag-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --rag-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --rag-radius: 8px;
+    --rag-radius-lg: 12px;
+    --rag-transition: all 0.2s ease;
+}
+
+/* Dark mode support */
+.rag-container--dark {
+    --rag-primary: #818cf8;
+    --rag-primary-hover: #a5b4fc;
+    --rag-border: #374151;
+    --rag-bg: #1f2937;
+    --rag-bg-hover: #374151;
+    --rag-bg-active: #4b5563;
+    --rag-muted: #9ca3af;
+}
+
+/* ==============================================
+   RAG Toggle Component
+   ============================================== */
+
+.rag-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--rag-bg);
+    border: 1px solid var(--rag-border);
+    border-radius: var(--rag-radius);
+    transition: var(--rag-transition);
+    cursor: pointer;
+    user-select: none;
+}
+
+.rag-toggle:hover {
+    background: var(--rag-bg-hover);
+    border-color: var(--rag-primary);
+}
+
+.rag-toggle--active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+    border-color: var(--rag-primary);
+}
+
+.rag-toggle--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.rag-toggle__content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rag-toggle__icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.rag-toggle__label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: inherit;
+}
+
+.rag-toggle__count {
+    font-size: 0.75rem;
+    color: var(--rag-muted);
+    background: var(--rag-bg-active);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+/* Toggle Switch */
+.rag-toggle__switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.rag-toggle__input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.rag-toggle__slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--rag-border);
+    border-radius: 12px;
+    transition: var(--rag-transition);
+}
+
+.rag-toggle__slider::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: var(--rag-transition);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.rag-toggle__input:checked+.rag-toggle__slider {
+    background: var(--rag-primary);
+}
+
+.rag-toggle__input:checked+.rag-toggle__slider::before {
+    transform: translateX(20px);
+}
+
+.rag-toggle__input:focus+.rag-toggle__slider {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+/* ==============================================
+   RAG Toggle Group (Multiple toggles)
+   ============================================== */
+
+.rag-toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rag-toggle-group__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.rag-toggle-group__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.rag-toggle-group__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.rag-toggle-group__action {
+    font-size: 0.75rem;
+    color: var(--rag-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: var(--rag-transition);
+}
+
+.rag-toggle-group__action:hover {
+    background: var(--rag-bg-hover);
+}
+
+/* Grid layout variant */
+.rag-toggle-group--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+/* ==============================================
+   RAG Source Badge
+   ============================================== */
+
+.rag-source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 16px;
+    background: var(--rag-bg-active);
+    color: var(--rag-muted);
+    transition: var(--rag-transition);
+}
+
+.rag-source-badge--document {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.rag-source-badge--lease {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.rag-source-badge--property {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.rag-source-badge--tenant {
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+.rag-source-badge--kpi {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.rag-source-badge--conversation {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+}
+
+/* ==============================================
+   RAG Chunk Card
+   ============================================== */
+
+.rag-chunk {
+    background: var(--rag-bg);
+    border: 1px solid var(--rag-border);
+    border-radius: var(--rag-radius-lg);
+    padding: 16px;
+    transition: var(--rag-transition);
+}
+
+.rag-chunk:hover {
+    box-shadow: var(--rag-shadow);
+    border-color: var(--rag-primary);
+}
+
+.rag-chunk__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.rag-chunk__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: inherit;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rag-chunk__score {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+.rag-chunk__score--high {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--rag-success);
+}
+
+.rag-chunk__score--medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--rag-warning);
+}
+
+.rag-chunk__score--low {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--rag-danger);
+}
+
+.rag-chunk__content {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--rag-muted);
+    margin-bottom: 12px;
+}
+
+.rag-chunk__highlight {
+    background: linear-gradient(120deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.rag-chunk__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--rag-border);
+}
+
+.rag-chunk__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: var(--rag-muted);
+}
+
+.rag-chunk__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.rag-chunk__tag {
+    font-size: 0.6875rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--rag-bg-active);
+    color: var(--rag-muted);
+}
+
+.rag-chunk__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.rag-chunk__action {
+    padding: 6px;
+    border: none;
+    background: transparent;
+    color: var(--rag-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: var(--rag-transition);
+}
+
+.rag-chunk__action:hover {
+    background: var(--rag-bg-hover);
+    color: var(--rag-primary);
+}
+
+/* ==============================================
+   RAG Search Results
+   ============================================== */
+
+.rag-results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rag-results__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+}
+
+.rag-results__count {
+    font-size: 0.875rem;
+    color: var(--rag-muted);
+}
+
+.rag-results__count strong {
+    color: inherit;
+    font-weight: 600;
+}
+
+.rag-results__time {
+    font-size: 0.75rem;
+    color: var(--rag-muted);
+}
+
+.rag-results__empty {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--rag-muted);
+}
+
+.rag-results__empty-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.rag-results__empty-text {
+    font-size: 0.875rem;
+}
+
+/* ==============================================
+   RAG Document Exclusion
+   ============================================== */
+
+.rag-exclusion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--rag-bg);
+    border: 1px solid var(--rag-border);
+    border-radius: var(--rag-radius);
+    transition: var(--rag-transition);
+}
+
+.rag-exclusion--excluded {
+    background: rgba(239, 68, 68, 0.05);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.rag-exclusion__icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.rag-exclusion__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.rag-exclusion__title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rag-exclusion__status {
+    font-size: 0.75rem;
+    color: var(--rag-muted);
+}
+
+.rag-exclusion__status--excluded {
+    color: var(--rag-danger);
+}
+
+.rag-exclusion__button {
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid var(--rag-border);
+    border-radius: 6px;
+    background: var(--rag-bg);
+    color: inherit;
+    cursor: pointer;
+    transition: var(--rag-transition);
+}
+
+.rag-exclusion__button:hover {
+    border-color: var(--rag-primary);
+    color: var(--rag-primary);
+}
+
+.rag-exclusion__button--danger {
+    border-color: var(--rag-danger);
+    color: var(--rag-danger);
+}
+
+.rag-exclusion__button--danger:hover {
+    background: var(--rag-danger);
+    color: white;
+}
+
+/* ==============================================
+   RAG Stats Card
+   ============================================== */
+
+.rag-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+.rag-stats__item {
+    background: var(--rag-bg);
+    border: 1px solid var(--rag-border);
+    border-radius: var(--rag-radius);
+    padding: 16px;
+    text-align: center;
+    transition: var(--rag-transition);
+}
+
+.rag-stats__item:hover {
+    box-shadow: var(--rag-shadow);
+}
+
+.rag-stats__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--rag-primary);
+    margin-bottom: 4px;
+}
+
+.rag-stats__label {
+    font-size: 0.75rem;
+    color: var(--rag-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ==============================================
+   RAG Panel (Sidebar/Modal)
+   ============================================== */
+
+.rag-panel {
+    background: var(--rag-bg);
+    border-radius: var(--rag-radius-lg);
+    box-shadow: var(--rag-shadow-lg);
+    overflow: hidden;
+}
+
+.rag-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--rag-border);
+}
+
+.rag-panel__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.rag-panel__close {
+    padding: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--rag-muted);
+    border-radius: 6px;
+    transition: var(--rag-transition);
+}
+
+.rag-panel__close:hover {
+    background: var(--rag-bg-hover);
+    color: inherit;
+}
+
+.rag-panel__content {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.rag-panel__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--rag-border);
+}
+
+/* ==============================================
+   RAG Loading States
+   ============================================== */
+
+.rag-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    color: var(--rag-muted);
+}
+
+.rag-loading__spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--rag-border);
+    border-top-color: var(--rag-primary);
+    border-radius: 50%;
+    animation: rag-spin 0.8s linear infinite;
+}
+
+@keyframes rag-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.rag-loading__text {
+    margin-left: 12px;
+    font-size: 0.875rem;
+}
+
+/* ==============================================
+   RAG Skeleton Loader
+   ============================================== */
+
+.rag-skeleton {
+    background: linear-gradient(90deg,
+            var(--rag-bg-active) 25%,
+            var(--rag-bg-hover) 50%,
+            var(--rag-bg-active) 75%);
+    background-size: 200% 100%;
+    animation: rag-shimmer 1.5s infinite;
+    border-radius: var(--rag-radius);
+}
+
+.rag-skeleton--text {
+    height: 16px;
+    width: 80%;
+}
+
+.rag-skeleton--title {
+    height: 24px;
+    width: 60%;
+}
+
+.rag-skeleton--card {
+    height: 120px;
+}
+
+@keyframes rag-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ==============================================
+   Responsive Adjustments
+   ============================================== */
+
+@media (max-width: 768px) {
+    .rag-toggle-group--grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rag-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .rag-chunk__footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .rag-panel__content {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .rag-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .rag-toggle {
+        padding: 10px 12px;
+    }
+
+    .rag-chunk {
+        padding: 12px;
+    }
+}

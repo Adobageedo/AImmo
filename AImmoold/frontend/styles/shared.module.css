@@ -1,0 +1,313 @@
+/* Shared/Common BEM Styles Module */
+
+/* Page layout */
+.page {
+    @apply space-y-6;
+}
+
+.page__header {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4;
+}
+
+.page__title {
+    @apply text-3xl font-bold text-gray-900;
+}
+
+.page__description {
+    @apply text-gray-500 mt-1;
+}
+
+.page__actions {
+    @apply flex items-center gap-2 shrink-0;
+}
+
+/* Cards */
+.card {
+    @apply bg-white rounded-xl border shadow-sm overflow-hidden;
+}
+
+.card__header {
+    @apply p-6 border-b;
+}
+
+.card__title {
+    @apply text-lg font-semibold text-gray-900;
+}
+
+.card__description {
+    @apply text-sm text-gray-500 mt-1;
+}
+
+.card__content {
+    @apply p-6;
+}
+
+.card__footer {
+    @apply p-6 border-t bg-gray-50;
+}
+
+/* Stat cards */
+.stat-card {
+    @apply relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-indigo-200;
+}
+
+.stat-card__header {
+    @apply flex items-start justify-between;
+}
+
+.stat-card__content {
+    @apply space-y-2;
+}
+
+.stat-card__label {
+    @apply text-sm font-medium text-gray-500;
+}
+
+.stat-card__value {
+    @apply text-3xl font-bold text-gray-900;
+}
+
+.stat-card__description {
+    @apply text-sm text-gray-500;
+}
+
+.stat-card__icon {
+    @apply flex h-12 w-12 items-center justify-center rounded-xl transition-colors;
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+}
+
+.stat-card:hover .stat-card__icon {
+    background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
+}
+
+.stat-card__trend {
+    @apply mt-4 inline-flex items-center text-sm font-medium;
+}
+
+.stat-card__trend--positive {
+    @apply text-green-600;
+}
+
+.stat-card__trend--negative {
+    @apply text-red-600;
+}
+
+.stat-card__arrow {
+    @apply absolute bottom-4 right-4 h-5 w-5 text-gray-300 group-hover:text-indigo-400 transition-colors;
+}
+
+/* Action cards */
+.action-card {
+    @apply relative overflow-hidden rounded-xl p-6 text-white transition-all hover:scale-[1.02] hover:shadow-lg;
+}
+
+.action-card--indigo {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.action-card--emerald {
+    background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+}
+
+.action-card--orange {
+    background: linear-gradient(135deg, #f97316 0%, #ec4899 100%);
+}
+
+.action-card--blue {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+}
+
+.action-card__content {
+    @apply flex items-center space-x-4;
+}
+
+.action-card__icon {
+    @apply flex h-12 w-12 items-center justify-center rounded-xl bg-white/20;
+}
+
+.action-card__title {
+    @apply font-semibold;
+}
+
+.action-card__description {
+    @apply text-sm text-white/80;
+}
+
+.action-card__decoration {
+    @apply absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-white/10;
+}
+
+/* Badges */
+.badge {
+    @apply inline-flex items-center font-medium rounded-full border px-2.5 py-0.5;
+}
+
+.badge--sm {
+    @apply px-2 py-0.5 text-xs;
+}
+
+.badge--md {
+    @apply px-2.5 py-1 text-sm;
+}
+
+.badge--default {
+    @apply bg-indigo-100 text-indigo-700 border-indigo-200;
+}
+
+.badge--secondary {
+    @apply bg-gray-100 text-gray-700 border-gray-200;
+}
+
+.badge--success {
+    @apply bg-green-100 text-green-700 border-green-200;
+}
+
+.badge--warning {
+    @apply bg-yellow-100 text-yellow-700 border-yellow-200;
+}
+
+.badge--error {
+    @apply bg-red-100 text-red-700 border-red-200;
+}
+
+/* Alerts */
+.alert {
+    @apply relative flex gap-3 rounded-lg border p-4;
+}
+
+.alert--info {
+    @apply bg-blue-50 border-blue-200 text-blue-800;
+}
+
+.alert--success {
+    @apply bg-green-50 border-green-200 text-green-800;
+}
+
+.alert--warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+}
+
+.alert--error {
+    @apply bg-red-50 border-red-200 text-red-800;
+}
+
+.alert__icon {
+    @apply h-5 w-5 flex-shrink-0 mt-0.5;
+}
+
+.alert__content {
+    @apply flex-1 min-w-0;
+}
+
+.alert__title {
+    @apply font-semibold mb-1;
+}
+
+.alert__message {
+    @apply text-sm;
+}
+
+.alert__close {
+    @apply flex-shrink-0 p-1 rounded-md hover:bg-black/5 transition-colors;
+}
+
+/* Empty states */
+.empty-state {
+    @apply flex flex-col items-center justify-center py-12 px-4 text-center;
+}
+
+.empty-state__icon {
+    @apply flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-4;
+}
+
+.empty-state__title {
+    @apply text-lg font-semibold text-gray-900 mb-1;
+}
+
+.empty-state__description {
+    @apply text-sm text-gray-500 max-w-sm mb-4;
+}
+
+/* Loading states */
+.loading {
+    @apply flex items-center justify-center gap-2;
+}
+
+.loading__spinner {
+    @apply animate-spin text-indigo-600;
+}
+
+.loading__spinner--sm {
+    @apply h-4 w-4;
+}
+
+.loading__spinner--md {
+    @apply h-6 w-6;
+}
+
+.loading__spinner--lg {
+    @apply h-8 w-8;
+}
+
+.loading__text {
+    @apply text-gray-600;
+}
+
+/* Buttons common */
+.btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200;
+}
+
+.btn--sm {
+    @apply h-9 px-3 text-sm;
+}
+
+.btn--md {
+    @apply h-10 px-4 text-sm;
+}
+
+.btn--lg {
+    @apply h-11 px-6 text-base;
+}
+
+.btn--primary {
+    @apply text-white;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.btn--primary:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+}
+
+.btn--secondary {
+    @apply bg-white text-gray-700 border border-gray-200 hover:bg-gray-50;
+}
+
+.btn--ghost {
+    @apply bg-transparent text-gray-700 hover:bg-gray-100;
+}
+
+.btn--danger {
+    @apply bg-red-600 text-white hover:bg-red-700;
+}
+
+.btn--disabled {
+    @apply opacity-50 cursor-not-allowed;
+}
+
+/* Search input */
+.search {
+    @apply relative;
+}
+
+.search__icon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400;
+}
+
+.search__input {
+    @apply w-full pl-10 pr-10 h-10 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 outline-none;
+}
+
+.search__clear {
+    @apply absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors;
+}

@@ -1,0 +1,219 @@
+/* Layout BEM Styles Module */
+
+/* App layout */
+.app {
+    @apply flex min-h-screen flex-col;
+}
+
+.app__header {
+    @apply sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60;
+}
+
+.app__content {
+    @apply flex-1 bg-gray-50;
+}
+
+.app__content-inner {
+    @apply mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8;
+}
+
+.app__footer {
+    @apply border-t bg-white;
+}
+
+/* Navbar */
+.navbar {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.navbar__container {
+    @apply flex h-16 items-center justify-between;
+}
+
+/* Logo */
+.navbar__logo {
+    @apply flex items-center space-x-2;
+}
+
+.navbar__logo-icon {
+    @apply flex h-8 w-8 items-center justify-center rounded-lg;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.navbar__logo-text {
+    @apply text-xl font-semibold text-gray-900;
+}
+
+/* Navigation links */
+.navbar__nav {
+    @apply hidden md:flex md:items-center md:space-x-1;
+}
+
+.navbar__link {
+    @apply inline-flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors;
+}
+
+.navbar__link--active {
+    @apply bg-indigo-50 text-indigo-700;
+}
+
+.navbar__link-icon {
+    @apply h-4 w-4;
+}
+
+/* User menu */
+.navbar__user {
+    @apply flex items-center space-x-4;
+}
+
+.navbar__org-name {
+    @apply hidden md:block text-sm text-gray-600;
+}
+
+.navbar__user-button {
+    @apply flex items-center space-x-2;
+}
+
+.navbar__user-avatar {
+    @apply flex h-8 w-8 items-center justify-center rounded-full;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+/* Mobile menu */
+.navbar__mobile-toggle {
+    @apply md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100;
+}
+
+.navbar__mobile-menu {
+    @apply md:hidden border-t bg-white;
+}
+
+.navbar__mobile-nav {
+    @apply space-y-1 px-4 py-3;
+}
+
+.navbar__mobile-link {
+    @apply flex items-center space-x-3 rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 transition-colors;
+}
+
+.navbar__mobile-link--active {
+    @apply bg-indigo-50 text-indigo-700;
+}
+
+/* Footer */
+.footer {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.footer__main {
+    @apply py-12 lg:py-16;
+}
+
+.footer__grid {
+    @apply grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5;
+}
+
+/* Footer brand */
+.footer__brand {
+    @apply col-span-2 lg:col-span-1;
+}
+
+.footer__logo {
+    @apply flex items-center space-x-2;
+}
+
+.footer__logo-icon {
+    @apply flex h-8 w-8 items-center justify-center rounded-lg;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.footer__logo-text {
+    @apply text-xl font-semibold text-gray-900;
+}
+
+.footer__tagline {
+    @apply mt-4 text-sm text-gray-600;
+}
+
+.footer__social {
+    @apply mt-6 flex space-x-4;
+}
+
+.footer__social-link {
+    @apply text-gray-400 hover:text-gray-600 transition-colors;
+}
+
+/* Footer navigation */
+.footer__nav-section {
+    /* No specific styles needed, inherits grid */
+}
+
+.footer__nav-title {
+    @apply text-sm font-semibold text-gray-900;
+}
+
+.footer__nav-list {
+    @apply mt-4 space-y-3;
+}
+
+.footer__nav-link {
+    @apply text-sm text-gray-600 hover:text-gray-900 transition-colors;
+}
+
+/* Footer bottom */
+.footer__bottom {
+    @apply border-t py-6;
+}
+
+.footer__bottom-content {
+    @apply flex flex-col items-center justify-between gap-4 md:flex-row;
+}
+
+.footer__copyright {
+    @apply text-sm text-gray-600;
+}
+
+.footer__contact {
+    @apply flex items-center space-x-4;
+}
+
+.footer__contact-link {
+    @apply flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors;
+}
+
+/* Public navbar */
+.public-navbar {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.public-navbar__container {
+    @apply flex h-16 items-center justify-between;
+}
+
+.public-navbar__nav {
+    @apply hidden md:flex md:items-center md:space-x-8;
+}
+
+.public-navbar__link {
+    @apply text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors;
+}
+
+.public-navbar__cta {
+    @apply hidden md:flex items-center space-x-4;
+}
+
+.public-navbar__mobile-menu {
+    @apply md:hidden border-t bg-white;
+}
+
+.public-navbar__mobile-nav {
+    @apply space-y-1 px-4 py-4;
+}
+
+.public-navbar__mobile-link {
+    @apply block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md;
+}
+
+.public-navbar__mobile-cta {
+    @apply pt-4 border-t space-y-2;
+}

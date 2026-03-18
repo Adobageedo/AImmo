@@ -1,0 +1,5 @@
+/* Styles index - import all CSS modules */
+@import "./auth.module.css";
+@import "./documents.module.css";
+@import "./layout.module.css";
+@import "./shared.module.css";

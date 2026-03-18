@@ -1,0 +1,525 @@
+/* Newsletter Module CSS - Phase 8 */
+/* BEM methodology with premium magazine-style design */
+
+/* ================================
+   Newsletter Container
+   ================================ */
+.newsletter {
+    @apply relative w-full;
+}
+
+.newsletter__header {
+    @apply flex items-center justify-between mb-8;
+}
+
+.newsletter__title {
+    @apply text-2xl font-bold;
+    background: linear-gradient(135deg, #1e1b4b 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.newsletter__subtitle {
+    @apply text-gray-500 mt-1;
+}
+
+/* ================================
+   Subscription Toggle
+   ================================ */
+.newsletter-subscription {
+    @apply flex items-center justify-between p-5 bg-white rounded-xl border shadow-sm;
+}
+
+.newsletter-subscription__info {
+    @apply flex items-center gap-4;
+}
+
+.newsletter-subscription__icon {
+    @apply flex items-center justify-center w-12 h-12 rounded-xl;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+}
+
+.newsletter-subscription__icon svg {
+    @apply w-6 h-6 text-violet-600;
+}
+
+.newsletter-subscription__text {
+    @apply space-y-0.5;
+}
+
+.newsletter-subscription__label {
+    @apply font-semibold text-gray-900;
+}
+
+.newsletter-subscription__status {
+    @apply text-sm text-gray-500;
+}
+
+.newsletter-subscription__status--active {
+    @apply text-emerald-600;
+}
+
+.newsletter-subscription__toggle {
+    @apply relative w-14 h-8 rounded-full transition-colors duration-300 cursor-pointer;
+}
+
+.newsletter-subscription__toggle--off {
+    @apply bg-gray-200;
+}
+
+.newsletter-subscription__toggle--on {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.newsletter-subscription__toggle-handle {
+    @apply absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300;
+}
+
+.newsletter-subscription__toggle--off .newsletter-subscription__toggle-handle {
+    @apply left-1;
+}
+
+.newsletter-subscription__toggle--on .newsletter-subscription__toggle-handle {
+    @apply left-7;
+}
+
+/* ================================
+   Newsletter Categories
+   ================================ */
+.newsletter-categories {
+    @apply mt-6 p-5 bg-white rounded-xl border shadow-sm;
+}
+
+.newsletter-categories__title {
+    @apply font-semibold text-gray-900 mb-4;
+}
+
+.newsletter-categories__grid {
+    @apply grid grid-cols-2 md:grid-cols-3 gap-3;
+}
+
+.newsletter-categories__item {
+    @apply flex items-center gap-3 p-3 rounded-lg border border-gray-200 cursor-pointer transition-all duration-200;
+}
+
+.newsletter-categories__item:hover {
+    @apply border-indigo-300 bg-indigo-50/50;
+}
+
+.newsletter-categories__item--active {
+    @apply border-indigo-500 bg-indigo-50;
+}
+
+.newsletter-categories__checkbox {
+    @apply w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500;
+}
+
+.newsletter-categories__label {
+    @apply text-sm font-medium text-gray-700;
+}
+
+.newsletter-categories__item--active .newsletter-categories__label {
+    @apply text-indigo-700;
+}
+
+/* ================================
+   Frequency Selector
+   ================================ */
+.newsletter-frequency {
+    @apply mt-6 p-5 bg-white rounded-xl border shadow-sm;
+}
+
+.newsletter-frequency__title {
+    @apply font-semibold text-gray-900 mb-4;
+}
+
+.newsletter-frequency__options {
+    @apply flex flex-wrap gap-3;
+}
+
+.newsletter-frequency__option {
+    @apply px-4 py-2.5 text-sm font-medium rounded-lg border border-gray-200 cursor-pointer transition-all duration-200;
+}
+
+.newsletter-frequency__option:hover {
+    @apply border-indigo-300 bg-indigo-50/50;
+}
+
+.newsletter-frequency__option--active {
+    @apply border-transparent text-white;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+/* ================================
+   Newsletter List
+   ================================ */
+.newsletter-list {
+    @apply space-y-4;
+}
+
+.newsletter-list__header {
+    @apply flex items-center justify-between mb-6;
+}
+
+.newsletter-list__title {
+    @apply text-xl font-bold text-gray-900;
+}
+
+.newsletter-list__count {
+    @apply text-sm text-gray-500;
+}
+
+/* ================================
+   Newsletter Card (List Item)
+   ================================ */
+.newsletter-card {
+    @apply relative flex gap-5 p-5 bg-white rounded-xl border shadow-sm transition-all duration-300 cursor-pointer overflow-hidden;
+}
+
+.newsletter-card:hover {
+    @apply shadow-lg border-indigo-200;
+    transform: translateY(-2px);
+}
+
+.newsletter-card__image {
+    @apply relative w-32 h-24 rounded-lg overflow-hidden shrink-0;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+}
+
+.newsletter-card__image img {
+    @apply w-full h-full object-cover;
+}
+
+.newsletter-card__image-placeholder {
+    @apply flex items-center justify-center w-full h-full text-indigo-300;
+}
+
+.newsletter-card__content {
+    @apply flex-1 min-w-0;
+}
+
+.newsletter-card__category {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full mb-2;
+}
+
+.newsletter-card__category--market_update {
+    @apply bg-blue-100 text-blue-700;
+}
+
+.newsletter-card__category--portfolio_summary {
+    @apply bg-indigo-100 text-indigo-700;
+}
+
+.newsletter-card__category--regulatory {
+    @apply bg-amber-100 text-amber-700;
+}
+
+.newsletter-card__category--tax_update {
+    @apply bg-emerald-100 text-emerald-700;
+}
+
+.newsletter-card__category--tips {
+    @apply bg-violet-100 text-violet-700;
+}
+
+.newsletter-card__category--product_news {
+    @apply bg-pink-100 text-pink-700;
+}
+
+.newsletter-card__title {
+    @apply text-lg font-semibold text-gray-900 mb-1 line-clamp-1;
+}
+
+.newsletter-card__preview {
+    @apply text-sm text-gray-600 line-clamp-2 mb-3;
+}
+
+.newsletter-card__meta {
+    @apply flex items-center gap-4 text-xs text-gray-500;
+}
+
+.newsletter-card__date {
+    @apply flex items-center gap-1;
+}
+
+.newsletter-card__read-time {
+    @apply flex items-center gap-1;
+}
+
+.newsletter-card__arrow {
+    @apply absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 transition-all duration-200;
+}
+
+.newsletter-card:hover .newsletter-card__arrow {
+    @apply text-indigo-500 translate-x-1;
+}
+
+/* ================================
+   Newsletter Preview (Full View)
+   ================================ */
+.newsletter-preview {
+    @apply bg-white rounded-2xl border shadow-lg overflow-hidden;
+}
+
+.newsletter-preview__hero {
+    @apply relative h-64 overflow-hidden;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+}
+
+.newsletter-preview__hero-image {
+    @apply absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-40;
+}
+
+.newsletter-preview__hero-content {
+    @apply absolute inset-0 flex flex-col justify-end p-8;
+}
+
+.newsletter-preview__category {
+    @apply inline-flex items-center px-3 py-1 text-sm font-medium bg-white/20 backdrop-blur-sm text-white rounded-full mb-4 w-fit;
+}
+
+.newsletter-preview__title {
+    @apply text-3xl font-bold text-white mb-2;
+}
+
+.newsletter-preview__date {
+    @apply text-white/80 text-sm;
+}
+
+.newsletter-preview__body {
+    @apply p-8;
+}
+
+.newsletter-preview__intro {
+    @apply text-lg text-gray-600 mb-8 pb-8 border-b border-gray-100;
+}
+
+/* ================================
+   Newsletter Section
+   ================================ */
+.newsletter-section {
+    @apply mb-10;
+}
+
+.newsletter-section__header {
+    @apply flex items-start gap-4 mb-4;
+}
+
+.newsletter-section__number {
+    @apply flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold text-white shrink-0;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.newsletter-section__title {
+    @apply text-xl font-bold text-gray-900;
+}
+
+.newsletter-section__content {
+    @apply text-gray-600 leading-relaxed;
+}
+
+.newsletter-section__content p {
+    @apply mb-4;
+}
+
+.newsletter-section__content h3 {
+    @apply text-lg font-semibold text-gray-900 mt-6 mb-3;
+}
+
+.newsletter-section__content ul {
+    @apply list-disc pl-5 mb-4 space-y-2;
+}
+
+.newsletter-section__content a {
+    @apply text-indigo-600 hover:text-indigo-700 underline;
+}
+
+.newsletter-section__image {
+    @apply mt-6 rounded-xl overflow-hidden;
+}
+
+.newsletter-section__image img {
+    @apply w-full h-auto;
+}
+
+.newsletter-section__link {
+    @apply inline-flex items-center gap-2 mt-4 text-sm font-medium text-indigo-600 hover:text-indigo-700;
+}
+
+.newsletter-section__link svg {
+    @apply w-4 h-4;
+}
+
+/* ================================
+   Newsletter Footer
+   ================================ */
+.newsletter-preview__footer {
+    @apply p-8 bg-gray-50 border-t border-gray-100;
+}
+
+.newsletter-preview__share {
+    @apply flex items-center justify-between;
+}
+
+.newsletter-preview__share-label {
+    @apply text-sm font-medium text-gray-500;
+}
+
+.newsletter-preview__share-buttons {
+    @apply flex items-center gap-3;
+}
+
+.newsletter-preview__share-btn {
+    @apply flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-500 transition-all duration-200;
+}
+
+.newsletter-preview__share-btn:hover {
+    @apply bg-indigo-50 border-indigo-200 text-indigo-600;
+}
+
+/* ================================
+   Newsletter History
+   ================================ */
+.newsletter-history {
+    @apply mt-8;
+}
+
+.newsletter-history__title {
+    @apply text-lg font-bold text-gray-900 mb-4;
+}
+
+.newsletter-history__list {
+    @apply space-y-3;
+}
+
+.newsletter-history__item {
+    @apply flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-200 transition-all duration-200 cursor-pointer;
+}
+
+.newsletter-history__item:hover {
+    @apply shadow-sm;
+}
+
+.newsletter-history__item-content {
+    @apply flex items-center gap-3;
+}
+
+.newsletter-history__item-icon {
+    @apply w-10 h-10 rounded-full flex items-center justify-center;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+}
+
+.newsletter-history__item-icon svg {
+    @apply w-5 h-5 text-indigo-600;
+}
+
+.newsletter-history__item-title {
+    @apply font-medium text-gray-900;
+}
+
+.newsletter-history__item-date {
+    @apply text-sm text-gray-500;
+}
+
+.newsletter-history__item-arrow {
+    @apply w-5 h-5 text-gray-300;
+}
+
+.newsletter-history__load-more {
+    @apply w-full mt-4 py-3 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors duration-200;
+}
+
+/* ================================
+   Newsletter Empty State
+   ================================ */
+.newsletter-empty {
+    @apply flex flex-col items-center justify-center py-16 text-center;
+}
+
+.newsletter-empty__icon {
+    @apply flex items-center justify-center w-20 h-20 mb-4 rounded-full;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+}
+
+.newsletter-empty__icon svg {
+    @apply w-10 h-10 text-violet-400;
+}
+
+.newsletter-empty__title {
+    @apply text-lg font-semibold text-gray-900 mb-1;
+}
+
+.newsletter-empty__text {
+    @apply text-sm text-gray-500 max-w-sm;
+}
+
+/* ================================
+   Newsletter Stats (Admin)
+   ================================ */
+.newsletter-stats {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-4 mb-6;
+}
+
+.newsletter-stats__card {
+    @apply p-4 bg-white rounded-xl border shadow-sm;
+}
+
+.newsletter-stats__value {
+    @apply text-2xl font-bold text-gray-900;
+}
+
+.newsletter-stats__label {
+    @apply text-sm text-gray-500 mt-1;
+}
+
+.newsletter-stats__trend {
+    @apply inline-flex items-center mt-2 text-xs font-medium;
+}
+
+.newsletter-stats__trend--up {
+    @apply text-emerald-600;
+}
+
+.newsletter-stats__trend--down {
+    @apply text-red-600;
+}
+
+/* ================================
+   Animations
+   ================================ */
+@keyframes newsletter-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.newsletter-card {
+    animation: newsletter-fade-in 0.4s ease-out forwards;
+}
+
+.newsletter-card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.newsletter-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.newsletter-card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.newsletter-card:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+.newsletter-card:nth-child(5) {
+    animation-delay: 0.25s;
+}
