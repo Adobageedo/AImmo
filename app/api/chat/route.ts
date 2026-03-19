@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { frontendTools } from "@assistant-ui/react-ai-sdk";
-import { streamText, type JSONSchema7 } from "ai";
+import { streamText, jsonSchema, stepCountIs, type JSONSchema7, type ToolSet } from "ai";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -37,11 +37,11 @@ export async function POST(req: Request) {
                   type: "tool-call" as const,
                   toolCallId: part.toolCallId,
                   toolName: part.toolName,
-                  args: part.args,
+                  args: part.args ?? {},
                 };
               }
               return { type: "text" as const, text: part.text || "" };
-            })
+            }).filter((part: any) => part.type !== "text" || part.text)
           : [{ type: "text" as const, text: String(msg.content) }],
       };
     }
@@ -58,10 +58,35 @@ export async function POST(req: Request) {
     };
   });
 
+  // Backend tools with execute functions (AI SDK handles execution + multi-step)
+  const backendTools = {
+    getCurrentDate: {
+      description: "Get the current date and time",
+      inputSchema: jsonSchema({
+        type: "object" as const,
+        properties: {},
+      }),
+      execute: async () => {
+        const now = new Date();
+        return now.toLocaleString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      },
+    },
+  } as ToolSet;
+
   const result = streamText({
     model: openai("gpt-4o"),
     messages: modelMessages,
+    stopWhen: stepCountIs(10),
     tools: {
+      ...backendTools,
       ...frontendTools(tools ?? {}),
     },
   });
