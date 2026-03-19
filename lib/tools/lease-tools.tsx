@@ -35,6 +35,9 @@ export const leaseTools: Toolkit = {
     execute: async ({ query, status, limit }) => {
       console.log(`🔧 DEBUG: search_leases tool called with:`, { query, status, limit });
       
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
       // Mock data for now - replace with actual API call
       const mockLeases = [
         {

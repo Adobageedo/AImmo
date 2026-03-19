@@ -55,6 +55,7 @@ export function MyRuntimeProvider({
     }),
     adapter: threadListAdapter,
   });
+  
 
   return (
     <AssistantRuntimeProvider runtime={runtime} aui={aui}>
