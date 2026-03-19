@@ -18,30 +18,43 @@ export function useThreadHistoryAdapter(): ThreadHistoryAdapter {
        */
       async load() {
         try {
-          // Récupérer le remoteId du thread
           const { remoteId } = aui.threadListItem().getState();
-          
+
           if (!remoteId) {
             return { messages: [] };
           }
 
-          // Récupérer les messages depuis l'API
           const response = await fetch(`/api/threads/${remoteId}/messages`);
-          
+
           if (!response.ok) {
-            console.error("Failed to load messages");
+            console.error("Failed to load messages:", response.statusText);
             return { messages: [] };
           }
 
           const { messages } = await response.json();
 
-          // Convertir au format assistant-ui
+          if (!messages || messages.length === 0) {
+            return { messages: [] };
+          }
+
+          // Convert to { parentId, message } wrapper format expected by useLocalRuntime
           return {
-            messages: messages.map((msg: any) => ({
-              id: msg.id,
-              role: msg.role,
-              content: msg.content,
-              createdAt: new Date(msg.created_at),
+            messages: messages.map((msg: any, index: number) => ({
+              parentId: index > 0 ? (messages[index - 1].metadata?.messageId || messages[index - 1].id) : null,
+              message: {
+                id: msg.metadata?.messageId || msg.id,
+                role: msg.role,
+                content: Array.isArray(msg.content) ? msg.content : [{ type: "text", text: String(msg.content) }],
+                createdAt: new Date(msg.created_at),
+                attachments: [],
+                ...(msg.role === "assistant" && {
+                  status: { type: "complete" as const, reason: "unknown" as const },
+                }),
+                metadata: {
+                  ...(msg.metadata || {}),
+                  custom: {},
+                },
+              },
             })),
           };
         } catch (error) {
@@ -56,67 +69,30 @@ export function useThreadHistoryAdapter(): ThreadHistoryAdapter {
        */
       async append(message) {
         try {
-          // Attendre l'initialisation du thread (safe to call multiple times)
+          const wrapper = message as any;
+          const messageData = wrapper?.message ?? message;
+
+          // Skip messages with empty content (called before stream completes)
+          if (
+            !messageData?.content ||
+            (Array.isArray(messageData.content) && messageData.content.length === 0)
+          ) {
+            return;
+          }
+
           const { remoteId } = await aui.threadListItem().initialize();
 
-          // Debug: Log the raw message received by the adapter
-          console.log(`� DEBUG: ThreadHistoryAdapter - Message reçu: ${JSON.stringify(message, null, 2)}`);
-
-          // Ensure message is not null or undefined
-          if (!message) {
-            console.error("🔥 DEBUG: Message is null or undefined");
+          const validRoles = ["user", "assistant", "system", "tool"];
+          if (!messageData?.role || !validRoles.includes(messageData.role)) {
             return;
           }
 
-          // Check if the message is wrapped by assistant-ui's internal structure
-          const messageWrapper = message as any;
-          let messageData: any;
-
-          if (messageWrapper && messageWrapper.message) {
-            messageData = messageWrapper.message;
-          } else {
-            messageData = message;
-          }
-
-          // Log the extracted message data
-          console.log(`🔥 DEBUG: MessageData extrait: ${JSON.stringify(messageData, null, 2)}`);
-
-          // Valider le role et le content
-          if (!messageData?.role || !messageData?.content) {
-            console.error("❌ Message role or content is missing", {
-              role: messageData?.role,
-              content: messageData?.content,
-              wrapperKeys: Object.keys(messageWrapper || {}),
-              messageKeys: Object.keys(messageData || {})
-            });
-            return;
-          }
-
-          // S'assurer que le role est valide
-          const validRoles = ['user', 'assistant', 'system', 'tool'];
-          if (!validRoles.includes(messageData.role)) {
-            console.error(`Invalid role: ${messageData.role}`);
-            return;
-          }
-
-          // Log before saving to API
-          console.log(` DEBUG: Envoi vers /api/threads/${remoteId}/messages`);
-
-          // Préparer le contenu pour la sauvegarde
-          let contentToSave = messageData.content;
-          if (messageData.parts && Array.isArray(messageData.parts)) {
-            contentToSave = messageData.parts;
-          }
-
-          console.log(` DEBUG: Contenu à sauvegarder:`, JSON.stringify(contentToSave, null, 2));
-
-          // Sauvegarder le message
           const response = await fetch(`/api/threads/${remoteId}/messages`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               role: messageData.role,
-              content: contentToSave,
+              content: messageData.content,
               metadata: {
                 messageId: messageData.id,
                 createdAt: messageData.createdAt?.toISOString?.(),
@@ -124,22 +100,14 @@ export function useThreadHistoryAdapter(): ThreadHistoryAdapter {
             }),
           });
 
-          console.log(` DEBUG: Response status:`, response.status);
-
           if (!response.ok) {
-            console.error(" DEBUG: Failed to save message:", response.statusText);
-            const errorText = await response.text();
-            console.error(" DEBUG: Error response:", errorText);
-            return;
+            console.error("Failed to save message:", response.statusText);
           }
-
-          const result = await response.json();
-          console.log(` DEBUG: Message saved successfully:`, result);
         } catch (error) {
           console.error("Error appending message:", error);
         }
       },
     }),
-    [aui]
+    [aui],
   );
 }

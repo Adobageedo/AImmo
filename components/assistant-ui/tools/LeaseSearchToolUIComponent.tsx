@@ -9,6 +9,22 @@ import { Badge } from "@/components/ui/badge";
 const LeaseSearchToolUIComponent = makeAssistantToolUI({
   toolName: "search_leases",
   render: ({ args, result, status }) => {
+    // Defensive check for args
+    if (!args) {
+      return (
+        <Card className="p-4 border-gray-200 bg-gray-50/50 dark:bg-gray-950/20 dark:border-gray-900">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin text-gray-600 dark:text-gray-400" />
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                Préparation de la recherche...
+              </p>
+            </div>
+          </div>
+        </Card>
+      );
+    }
+
     // État de chargement
     if (status.type === "running") {
       return (
@@ -20,7 +36,7 @@ const LeaseSearchToolUIComponent = makeAssistantToolUI({
                 Recherche en cours...
               </p>
               <p className="text-xs text-muted-foreground">
-                Analyse de "{args.query}"
+                Analyse de "{String(args.query)}"
               </p>
             </div>
           </div>
@@ -111,7 +127,7 @@ const LeaseSearchToolUIComponent = makeAssistantToolUI({
               <div className="flex items-start gap-2">
                 <span className="text-xs text-muted-foreground mt-0.5 min-w-[60px]">Requête:</span>
                 <span className="text-sm font-medium text-blue-900 dark:text-blue-100 flex-1">
-                  "{args.query}"
+                  "{String(args.query)}"
                 </span>
               </div>
  
@@ -122,9 +138,9 @@ const LeaseSearchToolUIComponent = makeAssistantToolUI({
                     <span className="text-xs text-muted-foreground">Statut:</span>
                     <Badge 
                       variant="outline" 
-                      className={`text-xs font-medium ${statusColors[args.status as keyof typeof statusColors] || statusColors.all}`}
+                      className={`text-xs font-medium ${statusColors[String(args.status) as keyof typeof statusColors] || statusColors.all}`}
                     >
-                      {args.status}
+                      {String(args.status)}
                     </Badge>
                   </div>
                 )}
@@ -132,7 +148,7 @@ const LeaseSearchToolUIComponent = makeAssistantToolUI({
                 <div className="flex items-center gap-1.5">
                   <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground">Limite:</span>
-                  <span className="text-xs font-medium">{args.limit} résultats max</span>
+                  <span className="text-xs font-medium">{String(args.limit)} résultats max</span>
                 </div>
               </div>
             </div>
