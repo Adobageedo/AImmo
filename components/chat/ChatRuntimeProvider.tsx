@@ -7,10 +7,13 @@ import {
   useLocalRuntime,
   useAui,
   Suggestions,
+  Tools,
   type ChatModelAdapter,
 } from "@assistant-ui/react";
 import { threadListAdapter } from "@/lib/chat/thread-list-adapter";
 import { GetCurrentDateToolUI } from "@/components/assistant-ui/tools/GetCurrentDateToolUI";
+import { SendEmailToolUI } from "@/components/assistant-ui/tools/SendEmailToolUI";
+import { appToolkit } from "@/lib/tools/toolkit";
 
 /**
  * ChatModelAdapter that sends messages to /api/chat and parses the NDJSON stream.
@@ -64,7 +67,6 @@ const chatModelAdapter: ChatModelAdapter = {
 
         try {
           const part = JSON.parse(line);
-          console.log("📡 Stream:", part.type, JSON.stringify(part).slice(0, 200));
 
           if (part.type === "text-delta" && part.text) {
             currentText += part.text;
@@ -114,6 +116,7 @@ export function MyRuntimeProvider({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const aui = useAui({
+    tools: Tools({ toolkit: appToolkit }),
     suggestions: Suggestions([
       {
         title: "Test search leases tool",
@@ -135,6 +138,11 @@ export function MyRuntimeProvider({
         label: "What's today's date?",
         prompt: "What's the current date and time?",
       },
+      {
+        title: "Send email",
+        label: "Send an email",
+        prompt: "Send an email to john@example.com with subject 'Test' and body 'Hello'",
+      },
     ]),
   });
 
@@ -149,6 +157,7 @@ export function MyRuntimeProvider({
   return (
     <AssistantRuntimeProvider runtime={runtime} aui={aui}>
       <GetCurrentDateToolUI />
+      <SendEmailToolUI />
       {children}
     </AssistantRuntimeProvider>
   );

@@ -6,7 +6,7 @@ import {
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import { Reasoning, ReasoningGroup } from "@/components/assistant-ui/reasoning";
 import { ToolFallback } from "@/components/assistant-ui/tool-fallback";
-// import { ToolGroup } from "@/components/assistant-ui/tool-group";
+import { ToolGroup } from "@/components/assistant-ui/tool-group";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -209,7 +209,7 @@ const AssistantMessage: FC = () => {
             Text: MarkdownText,
             Reasoning,
             ReasoningGroup,
-            // ToolGroup,
+            ToolGroup,
             tools: { Fallback: ToolFallback },
           }}
         />

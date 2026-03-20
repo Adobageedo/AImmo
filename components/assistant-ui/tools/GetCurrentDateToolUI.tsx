@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 const GetCurrentDateToolUI = makeAssistantToolUI({
   toolName: "getCurrentDate",
   render: ({ result, status }) => {
-    console.log("🔧 Tool UI render:", { toolName: "getCurrentDate", status, result });
     if (status.type === "running") {
       return (
         <Card className="p-4 border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-950/20 dark:to-indigo-950/10 dark:border-blue-900">

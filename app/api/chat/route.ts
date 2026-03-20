@@ -79,6 +79,42 @@ export async function POST(req: Request) {
         });
       },
     },
+    sendEmail: {
+      description: "Send an email (requires user approval)",
+      inputSchema: jsonSchema({
+        type: "object" as const,
+        properties: {
+          to: { type: "string", description: "Recipient email address" },
+          subject: { type: "string", description: "Email subject" },
+          body: { type: "string", description: "Email body content" },
+          approved: { type: "boolean", description: "Whether user has approved sending" },
+        },
+        required: ["to", "subject", "body"],
+      }),
+      execute: async (args: { to: string; subject: string; body: string; approved?: boolean }) => {
+        // First call: check if user has approved
+        if (!args.approved) {
+          return {
+            status: "requires_approval",
+            message: "Email requires user approval before sending",
+            emailDetails: {
+              to: args.to,
+              subject: args.subject,
+              preview: args.body.slice(0, 100) + (args.body.length > 100 ? "..." : ""),
+            },
+          };
+        }
+
+        // Second call: user has approved, actually send the email
+        console.log("📧 Email sent:", { to: args.to, subject: args.subject });
+        
+        return {
+          status: "sent",
+          message: `Email sent to ${args.to}`,
+          timestamp: new Date().toISOString(),
+        };
+      },
+    },
   } as ToolSet;
 
   const result = streamText({
