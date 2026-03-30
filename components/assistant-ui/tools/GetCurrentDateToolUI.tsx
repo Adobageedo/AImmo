@@ -37,6 +37,10 @@ const GetCurrentDateToolUI = makeAssistantToolUI({
     }
 
     if (status.type === "complete" && result) {
+      const dateStr = typeof result === "object" && result !== null
+        ? `${(result as any).date ?? ""} — ${(result as any).time ?? ""}`
+        : String(result);
+
       return (
         <Card className="overflow-hidden border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-950/20 dark:to-indigo-950/10 dark:border-blue-900">
           <div className="flex items-center gap-3 p-4">
@@ -46,7 +50,7 @@ const GetCurrentDateToolUI = makeAssistantToolUI({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Current Date & Time
+                  Date & Heure
                 </p>
                 <Badge
                   variant="outline"
@@ -57,7 +61,7 @@ const GetCurrentDateToolUI = makeAssistantToolUI({
                 </Badge>
               </div>
               <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                {String(result)}
+                {dateStr}
               </p>
             </div>
           </div>

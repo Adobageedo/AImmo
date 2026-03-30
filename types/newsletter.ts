@@ -9,12 +9,24 @@ export type NewsletterCategory =
 
 export type NewsletterFrequency = "daily" | "weekly" | "monthly";
 
-export interface Newsletter extends BaseEntity {
+export interface Newsletter extends Omit<BaseEntity, 'organization_id'> {
   title: string;
   category: NewsletterCategory;
   frequency: NewsletterFrequency;
   description: string;
   active: boolean;
+  slug?: string;
+  theme?: string;
+  is_active?: boolean;
+  organization_id?: string;
+}
+
+export interface NewsletterWithSubscription extends Newsletter {
+  is_user_subscribed?: boolean;
+  subscription_id?: string;
+  edition_count?: number;
+  subscriber_count?: number;
+  last_published_at?: string;
 }
 
 export interface NewsletterSubscription {
@@ -30,6 +42,7 @@ export interface NewsletterEdition extends BaseEntity {
   newsletter_id: string;
   title: string;
   content: string;
+  published_at?: string;
   sent_at?: string;
   recipient_count?: number;
   open_rate?: number;

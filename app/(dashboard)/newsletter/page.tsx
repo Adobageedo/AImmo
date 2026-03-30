@@ -1,72 +1,41 @@
 "use client"
 
-import { Mail, Clock, CheckCircle2, Bell, Calendar, ArrowLeft, Newspaper } from "lucide-react"
-import { useState, useCallback } from "react"
+import { Mail, Clock, CheckCircle2, Bell, Calendar, ArrowLeft, Newspaper, RefreshCw, AlertCircle } from "lucide-react"
+import { useState, useCallback, useEffect } from "react"
+import { newsletterService } from "@/lib/newsletter-service"
+import { useAuth } from "@/hooks/use-auth"
+import { NewsletterWithSubscription, NewsletterEdition } from "@/types/newsletter"
 
-// Mock data for newsletters
-const mockNewsletters = [
-    {
-        id: "1",
-        title: "Immobilier Hebdo",
-        description: "Les dernières actualités du marché immobilier chaque semaine",
-        theme: "market",
-        frequency: "weekly",
-        is_user_subscribed: true
-    },
-    {
-        id: "2", 
-        title: "Gestion Locative",
-        description: "Conseils et astuces pour optimiser la gestion de vos biens",
-        theme: "management",
-        frequency: "monthly",
-        is_user_subscribed: false
-    },
-    {
-        id: "3",
-        title: "Légal & Fiscal",
-        description: "Mises à jour juridiques et fiscales pour propriétaires",
-        theme: "legal",
-        frequency: "monthly", 
-        is_user_subscribed: false
-    }
-]
-
-const NEWSLETTER_THEMES = {
+const NEWSLETTER_THEMES: Record<string, string> = {
     market: "Marché",
     management: "Gestion",
-    legal: "Légal & Fiscal"
+    legal: "Légal & Fiscal",
+    regulation: "Jurisprudence",
+    jurisprudence: "Jurisprudence",
+    residential: "Résidentiel",
+    commercial: "Commercial",
+    taxation: "Fiscalité",
+    market_trends: "Tendances"
 }
 
 const NEWSLETTER_FREQUENCIES = {
     weekly: "Hebdomadaire",
-    monthly: "Mensuel"
+    monthly: "Mensuel",
+    daily: "Quotidien"
 }
 
 export default function NewsletterPage() {
-    const [newsletters, setNewsletters] = useState(mockNewsletters)
-    const [loading, setLoading] = useState(false)
+    const { user } = useAuth()
+    const [newsletters, setNewsletters] = useState<NewsletterWithSubscription[]>([])
+    const [editions, setEditions] = useState<NewsletterEdition[]>([])
+    const [lastEdition, setLastEdition] = useState<NewsletterEdition | null>(null)
+    const [loading, setLoading] = useState(true)
     const [subscribing, setSubscribing] = useState(false)
+    const [generating, setGenerating] = useState(false)
     const [selectedNewsletterId, setSelectedNewsletterId] = useState<string | null>(null)
+    const [error, setError] = useState<string | null>(null)
 
     const currentNewsletter = newsletters.find(n => n.id === selectedNewsletterId)
-    const lastEdition = selectedNewsletterId ? {
-        id: "1",
-        title: "Édition de mars 2024",
-        content: "<p>Contenu de la dernière newsletter...</p>",
-        published_at: "2024-03-01"
-    } : null
-    const editions = selectedNewsletterId ? [
-        {
-            id: "1",
-            title: "Édition de mars 2024",
-            published_at: "2024-03-01"
-        },
-        {
-            id: "2", 
-            title: "Édition de février 2024",
-            published_at: "2024-02-01"
-        }
-    ] : []
 
     const handleSelectNewsletter = useCallback(async (id: string) => {
         setSelectedNewsletterId(id)
@@ -76,93 +45,262 @@ export default function NewsletterPage() {
         setSelectedNewsletterId(null)
     }, [])
 
+    // Load newsletters on mount and when user changes
+    useEffect(() => {
+        loadNewsletters()
+    }, [user?.id])
+
+    // Load editions when newsletter is selected
+    useEffect(() => {
+        if (selectedNewsletterId) {
+            loadNewsletterDetails(selectedNewsletterId)
+        }
+    }, [selectedNewsletterId])
+
+    const loadNewsletters = async () => {
+        try {
+            setLoading(true)
+            setError(null)
+            const data = await newsletterService.getNewsletters(user?.id)
+            setNewsletters(data)
+        } catch (err) {
+            console.error('Error loading newsletters:', err)
+            setError('Erreur lors du chargement des newsletters')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const loadNewsletterDetails = async (newsletterId: string) => {
+        try {
+            const [editionsData, latestData] = await Promise.all([
+                newsletterService.getNewsletterEditions(newsletterId),
+                newsletterService.getLatestEdition(newsletterId)
+            ])
+            setEditions(editionsData)
+            setLastEdition(latestData)
+        } catch (err) {
+            console.error('Error loading newsletter details:', err)
+            setError('Erreur lors du chargement des détails')
+        }
+    }
+
     const handleToggleSubscription = useCallback(async (id: string, isSubscribed: boolean) => {
+        if (!user?.id) {
+            setError('Vous devez être connecté pour gérer vos abonnements')
+            return
+        }
+        
         setSubscribing(true)
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            if (isSubscribed) {
+                await newsletterService.unsubscribeFromNewsletter(id, user.id)
+            } else {
+                await newsletterService.subscribeToNewsletter({ newsletter_id: id }, user.id)
+            }
             
-            setNewsletters(prev => prev.map(n => 
-                n.id === id ? { ...n, is_user_subscribed: !isSubscribed } : n
-            ))
+            // Refresh newsletters to update subscription status
+            await loadNewsletters()
         } catch (error) {
             console.error('Error toggling subscription:', error)
+            setError('Erreur lors de la gestion de l\'abonnement')
         } finally {
             setSubscribing(false)
+        }
+    }, [user?.id, loadNewsletters])
+
+    const handleGenerateNewsletter = useCallback(async (newsletterId: string) => {
+        if (newsletterId !== 'jurisprudence-immobiliere') return
+        
+        setGenerating(true)
+        try {
+            const result = await newsletterService.generateJurisprudenceNewsletter()
+            if (result.success) {
+                // Refresh editions
+                await loadNewsletterDetails(newsletterId)
+                setError(null)
+            } else {
+                setError('Erreur lors de la génération de la newsletter')
+            }
+        } catch (error) {
+            console.error('Error generating newsletter:', error)
+            setError('Erreur lors de la génération de la newsletter')
+        } finally {
+            setGenerating(false)
         }
     }, [])
 
     // Detail view
     if (selectedNewsletterId && currentNewsletter) {
         return (
-            <div className="flex-1 bg-gray-50">
+            <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <button
-                        onClick={handleBack}
-                        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="text-sm font-medium">Retour aux newsletters</span>
-                    </button>
-
-                    <div className="mb-8">
-                        <div className="flex items-center space-x-3 mb-2">
-                            <div className="p-2 bg-indigo-100 rounded-lg">
-                                <Newspaper className="h-6 w-6 text-indigo-600" />
+                    {/* Navigation */}
+                    <div className="flex items-center justify-between mb-8">
+                        <button
+                            onClick={handleBack}
+                            className="group flex items-center space-x-3 text-gray-600 hover:text-gray-900 transition-all duration-200"
+                        >
+                            <div className="p-2 rounded-lg group-hover:bg-gray-200 transition-colors">
+                                <ArrowLeft className="h-5 w-5" />
                             </div>
-                            <h1 className="text-3xl font-bold text-gray-900">{currentNewsletter.title}</h1>
+                            <span className="font-medium">Retour aux newsletters</span>
+                        </button>
+                        
+                        {/* Status indicators */}
+                        <div className="flex items-center space-x-3">
+                            {currentNewsletter.is_user_subscribed && (
+                                <div className="flex items-center space-x-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <span className="text-sm font-medium text-green-700">Abonné</span>
+                                </div>
+                            )}
+                            <div className="flex items-center space-x-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full">
+                                <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+                                <span className="text-sm font-medium text-blue-700">Actif</span>
+                            </div>
                         </div>
-                        {currentNewsletter.description && (
-                            <p className="text-gray-600 mt-2">{currentNewsletter.description}</p>
-                        )}
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 space-y-6">
-                            {/* Last Edition */}
-                            {lastEdition ? (
-                                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                                    <div className="flex items-center space-x-2 mb-4">
-                                        <Calendar className="h-5 w-5 text-indigo-600" />
-                                        <h2 className="text-lg font-semibold text-gray-900">Dernière édition</h2>
+                    <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+                        {/* Main content area */}
+                        <div className="xl:col-span-3 space-y-8">
+                            {/* Newsletter header card */}
+                            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-6">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex items-center space-x-3 mb-3">
+                                                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                                                    <Mail className="h-6 w-6 text-white" />
+                                                </div>
+                                                <div>
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm border border-white/30`}>
+                                                        {NEWSLETTER_THEMES[currentNewsletter.theme as keyof typeof NEWSLETTER_THEMES] || currentNewsletter.theme || 'Non spécifié'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <h1 className="text-3xl font-bold text-white mb-2">
+                                                {currentNewsletter.title}
+                                            </h1>
+                                            <p className="text-white/80 text-sm">
+                                                {NEWSLETTER_FREQUENCIES[currentNewsletter.frequency as keyof typeof NEWSLETTER_FREQUENCIES] || currentNewsletter.frequency} • 
+                                                {currentNewsletter.edition_count !== undefined && ` ${currentNewsletter.edition_count} édition${currentNewsletter.edition_count > 1 ? 's' : ''} publiée${currentNewsletter.edition_count > 1 ? 's' : ''}`}
+                                            </p>
+                                        </div>
+                                        <div className="hidden lg:block">
+                                            <div className="p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                                                <Calendar className="h-8 w-8 text-white" />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                        {lastEdition.title}
-                                    </h3>
-                                    <p className="text-sm text-gray-500 mb-4">
-                                        Publié le {new Date(lastEdition.published_at).toLocaleDateString("fr-FR")}
-                                    </p>
-                                    <div
-                                        className="prose prose-sm max-w-none text-gray-700"
-                                        dangerouslySetInnerHTML={{ __html: lastEdition.content }}
-                                    />
+                                </div>
+                                
+                                <div className="px-8 py-6">
+                                    {currentNewsletter.description && (
+                                        <p className="text-gray-600 text-lg leading-relaxed">
+                                            {currentNewsletter.description}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Latest edition */}
+                            {lastEdition ? (
+                                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                                    <div className="px-8 py-6 border-b border-gray-100">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="p-2 bg-indigo-50 rounded-lg">
+                                                    <Newspaper className="h-5 w-5 text-indigo-600" />
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-xl font-bold text-gray-900">Dernière édition</h2>
+                                                    <p className="text-sm text-gray-500">
+                                                        Publié le {lastEdition.published_at ? new Date(lastEdition.published_at).toLocaleDateString("fr-FR", { 
+                                                            weekday: 'long', 
+                                                            year: 'numeric', 
+                                                            month: 'long', 
+                                                            day: 'numeric' 
+                                                        }) : 'Date non spécifiée'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                                                    <div className="h-1.5 w-1.5 bg-green-500 rounded-full mr-1.5" />
+                                                    Publié
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="px-8 py-6">
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                                            {lastEdition.title}
+                                        </h3>
+                                        <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                                            <iframe
+                                                srcDoc={lastEdition.content}
+                                                className="w-full min-h-[600px]"
+                                                sandbox="allow-same-origin allow-scripts"
+                                                title="Newsletter Preview"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                                    <div className="flex items-center space-x-2 mb-4">
-                                        <Newspaper className="h-5 w-5 text-gray-400" />
-                                        <h2 className="text-lg font-semibold text-gray-900">Dernière édition</h2>
+                                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-12 text-center">
+                                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                                        <Newspaper className="h-8 w-8 text-gray-400" />
                                     </div>
-                                    <p className="text-gray-500 text-center py-8">
-                                        Aucune édition disponible pour cette newsletter.
+                                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucune édition publiée</h3>
+                                    <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                                        Cette newsletter n'a pas encore d'édition publiée.
+                                        {currentNewsletter.id === 'jurisprudence-immobiliere' && " Vous pouvez générer la première édition depuis le panneau latéral."}
                                     </p>
+                                    {currentNewsletter.id === 'jurisprudence-immobiliere' && (
+                                        <div className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium">
+                                            <RefreshCw className="h-4 w-4" />
+                                            <span>Générable depuis le panneau latéral</span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
-                            {/* Editions History */}
-                            {editions.length > 0 && (
-                                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Éditions précédentes</h2>
-                                    <div className="space-y-3">
-                                        {editions.map((edition) => (
+                            {/* Previous editions */}
+                            {editions.length > 1 && (
+                                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                                    <div className="px-8 py-6 border-b border-gray-100">
+                                        <h2 className="text-xl font-bold text-gray-900">Éditions précédentes</h2>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            {editions.length - 1} édition{editions.length - 1 > 1 ? 's' : ''} précédente{editions.length - 1 > 1 ? 's' : ''}
+                                        </p>
+                                    </div>
+                                    <div className="divide-y divide-gray-100">
+                                        {editions.slice(1).map((edition) => (
                                             <div
                                                 key={edition.id}
-                                                className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                                                className="px-8 py-6 hover:bg-gray-50 transition-colors cursor-pointer group"
                                             >
-                                                <h4 className="font-medium text-gray-900">{edition.title}</h4>
-                                                <p className="text-sm text-gray-500 mt-1">
-                                                    {new Date(edition.published_at).toLocaleDateString("fr-FR")}
-                                                </p>
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex-1">
+                                                        <h4 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors mb-2">
+                                                            {edition.title}
+                                                        </h4>
+                                                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                                            <span className="flex items-center space-x-1">
+                                                                <Calendar className="h-4 w-4" />
+                                                                <span>{edition.published_at ? new Date(edition.published_at).toLocaleDateString("fr-FR") : 'Date non spécifiée'}</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-indigo-50 transition-colors">
+                                                            <ArrowLeft className="h-4 w-4 text-gray-600 group-hover:text-indigo-600 transition-colors rotate-180" />
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -171,53 +309,136 @@ export default function NewsletterPage() {
                         </div>
 
                         {/* Sidebar */}
-                        <div className="space-y-6">
-                            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                                <h3 className="font-semibold text-gray-900 mb-4">Informations</h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500 mb-1">Thème</p>
-                                        <p className="text-gray-900">
-                                            {NEWSLETTER_THEMES[currentNewsletter.theme as keyof typeof NEWSLETTER_THEMES] || currentNewsletter.theme}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500 mb-1">Fréquence</p>
-                                        <p className="text-gray-900">
-                                            {NEWSLETTER_FREQUENCIES[currentNewsletter.frequency as keyof typeof NEWSLETTER_FREQUENCIES] || currentNewsletter.frequency}
-                                        </p>
+                        <div className="xl:col-span-1 space-y-6">
+                            {/* Error message */}
+                            {error && (
+                                <div className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
+                                    <div className="flex items-start space-x-3">
+                                        <div className="flex-shrink-0">
+                                            <AlertCircle className="h-5 w-5 text-red-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-red-800">{error}</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => handleToggleSubscription(currentNewsletter.id, currentNewsletter.is_user_subscribed || false)}
-                                    disabled={subscribing}
-                                    className={`
-                                        mt-6 w-full px-4 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center space-x-2
-                                        ${
-                                            currentNewsletter.is_user_subscribed
-                                                ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
-                                                : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow"
-                                        }
-                                        ${subscribing ? "opacity-50 cursor-not-allowed" : ""}
-                                    `}
-                                >
-                                    {subscribing ? (
-                                        <>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-                                            <span>Chargement...</span>
-                                        </>
-                                    ) : currentNewsletter.is_user_subscribed ? (
-                                        <>
-                                            <CheckCircle2 className="h-4 w-4" />
-                                            <span>Se désabonner</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Bell className="h-4 w-4" />
-                                            <span>S'abonner</span>
-                                        </>
+                            )}
+
+                            {/* Actions card */}
+                            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                                <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+                                    <h3 className="font-semibold text-gray-900">Actions</h3>
+                                </div>
+                                <div className="p-6 space-y-4">
+                                    {/* Generate button for jurisprudence */}
+                                    {currentNewsletter.id === 'jurisprudence-immobiliere' && (
+                                        <button
+                                            onClick={() => handleGenerateNewsletter(currentNewsletter.id)}
+                                            disabled={generating}
+                                            className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2 hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                        >
+                                            {generating ? (
+                                                <>
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                                                    <span>Génération en cours...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <RefreshCw className="h-4 w-4" />
+                                                    <span>Générer la newsletter</span>
+                                                </>
+                                            )}
+                                        </button>
                                     )}
-                                </button>
+                                    
+                                    {/* Subscription button */}
+                                    <button
+                                        onClick={() => handleToggleSubscription(currentNewsletter.id, currentNewsletter.is_user_subscribed || false)}
+                                        disabled={subscribing}
+                                        className={`
+                                            w-full px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2 hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                                            ${
+                                                currentNewsletter.is_user_subscribed
+                                                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                                                    : "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700"
+                                            }
+                                        `}
+                                    >
+                                        {subscribing ? (
+                                            <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                                                <span>Chargement...</span>
+                                            </>
+                                        ) : currentNewsletter.is_user_subscribed ? (
+                                            <>
+                                                <CheckCircle2 className="h-4 w-4" />
+                                                <span>Se désabonner</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Bell className="h-4 w-4" />
+                                                <span>S'abonner</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Information card */}
+                            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                                <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+                                    <h3 className="font-semibold text-gray-900">Informations</h3>
+                                </div>
+                                <div className="p-6 space-y-6">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500 mb-2">Thème</p>
+                                        <div className="flex items-center space-x-2">
+                                            <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium ${
+                                                currentNewsletter.theme === 'jurisprudence' 
+                                                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                                                    : 'bg-blue-100 text-blue-700 border border-blue-200'
+                                            }`}>
+                                                {NEWSLETTER_THEMES[currentNewsletter.theme as keyof typeof NEWSLETTER_THEMES] || currentNewsletter.theme || 'Non spécifié'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500 mb-2">Fréquence</p>
+                                        <div className="flex items-center space-x-2">
+                                            <Clock className="h-4 w-4 text-gray-400" />
+                                            <span className="text-gray-900">
+                                                {NEWSLETTER_FREQUENCIES[currentNewsletter.frequency as keyof typeof NEWSLETTER_FREQUENCIES] || currentNewsletter.frequency}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    {currentNewsletter.edition_count !== undefined && (
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500 mb-2">Éditions publiées</p>
+                                            <div className="flex items-center space-x-2">
+                                                <Newspaper className="h-4 w-4 text-gray-400" />
+                                                <span className="text-gray-900 font-medium">{currentNewsletter.edition_count}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {currentNewsletter.last_published_at && (
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500 mb-2">Dernière publication</p>
+                                            <div className="flex items-center space-x-2">
+                                                <Calendar className="h-4 w-4 text-gray-400" />
+                                                <span className="text-gray-900">
+                                                    {new Date(currentNewsletter.last_published_at).toLocaleDateString("fr-FR", { 
+                                                        day: 'numeric', 
+                                                        month: 'short', 
+                                                        year: 'numeric' 
+                                                    })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -228,143 +449,235 @@ export default function NewsletterPage() {
 
     // List view
     return (
-        <div className="flex-1 bg-gray-50">
+        <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
-                <div className="mb-8">
-                    <div className="flex items-center space-x-3 mb-2">
-                        <div className="p-2 bg-indigo-100 rounded-lg">
-                            <Newspaper className="h-6 w-6 text-indigo-600" />
+                <div className="mb-10">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                            <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+                                <Newspaper className="h-7 w-7 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-4xl font-bold text-gray-900 mb-2">Newsletters</h1>
+                                <p className="text-gray-600 text-lg">Restez informé des dernières actualités et analyses immobilières</p>
+                            </div>
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900">Newsletters</h1>
+                        <div className="hidden md:flex items-center space-x-2">
+                            <div className="px-4 py-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                                <span className="text-sm text-gray-500">Total</span>
+                                <span className="ml-2 font-semibold text-gray-900">{newsletters.length}</span>
+                            </div>
+                        </div>
                     </div>
-                    <p className="text-gray-600">Restez informé des dernières actualités immobilières</p>
                 </div>
+
+                {/* Error message */}
+                {error && (
+                    <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
+                        <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0">
+                                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-medium text-red-800">{error}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm animate-pulse">
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center space-x-3 flex-1">
-                                        <div className="p-2 bg-gray-200 rounded-lg w-10 h-10" />
-                                        <div className="flex-1">
-                                            <div className="h-5 bg-gray-200 rounded w-3/4 mb-2" />
-                                            <div className="h-3 bg-gray-200 rounded w-1/2" />
+                            <div key={i} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden animate-pulse">
+                                <div className="h-2 bg-gradient-to-r from-indigo-500 to-purple-600" />
+                                <div className="p-6">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center space-x-3 flex-1">
+                                            <div className="p-3 bg-gray-200 rounded-xl w-12 h-12" />
+                                            <div className="flex-1">
+                                                <div className="h-6 bg-gray-200 rounded w-3/4 mb-2" />
+                                                <div className="h-4 bg-gray-200 rounded w-1/2" />
+                                            </div>
                                         </div>
+                                        <div className="h-6 bg-gray-200 rounded-full w-16" />
+                                    </div>
+                                    <div className="space-y-3 mb-4">
+                                        <div className="h-3 bg-gray-200 rounded" />
+                                        <div className="h-3 bg-gray-200 rounded w-5/6" />
+                                    </div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="h-4 bg-gray-200 rounded w-20" />
+                                        <div className="h-8 bg-gray-200 rounded-lg w-24" />
                                     </div>
                                 </div>
-                                <div className="space-y-2 mb-4">
-                                    <div className="h-3 bg-gray-200 rounded w-full" />
-                                    <div className="h-3 bg-gray-200 rounded w-5/6" />
-                                </div>
-                                <div className="h-10 bg-gray-200 rounded-lg w-full" />
                             </div>
                         ))}
                     </div>
-                ) : newsletters.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 px-4">
-                        <div className="p-4 bg-gray-100 rounded-full mb-4">
-                            <Mail className="h-10 w-10 text-gray-400" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            Aucune newsletter disponible
-                        </h3>
-                        <p className="text-gray-500 text-center max-w-sm">
-                            Il n'y a pas de newsletters disponibles pour le moment.
-                        </p>
-                    </div>
-                ) : (
+                ) : newsletters.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {newsletters.map((newsletter) => (
                             <div
                                 key={newsletter.id}
-                                className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                                className="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
                                 onClick={() => handleSelectNewsletter(newsletter.id)}
                             >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="p-2 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">
-                                            <Mail className="h-5 w-5 text-indigo-600" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">{newsletter.title}</h3>
-                                            <div className="flex items-center space-x-2 mt-1">
-                                                <span className="text-xs text-gray-500">
-                                                    {NEWSLETTER_THEMES[newsletter.theme as keyof typeof NEWSLETTER_THEMES] || newsletter.theme}
-                                                </span>
-                                                <span className="text-xs text-gray-400">•</span>
-                                                <Clock className="h-3 w-3 text-gray-400" />
-                                                <span className="text-xs text-gray-500">
-                                                    {NEWSLETTER_FREQUENCIES[newsletter.frequency as keyof typeof NEWSLETTER_FREQUENCIES] || newsletter.frequency}
-                                                </span>
+                                {/* Header gradient */}
+                                <div className={`h-2 bg-gradient-to-r ${
+                                    newsletter.theme === 'jurisprudence' 
+                                        ? 'from-purple-500 to-indigo-600' 
+                                        : 'from-indigo-500 to-purple-600'
+                                }`} />
+                                
+                                <div className="p-6">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center space-x-3">
+                                            <div className={`p-3 rounded-xl transition-all duration-300 group-hover:scale-110 ${
+                                                newsletter.theme === 'jurisprudence' 
+                                                    ? 'bg-purple-50 group-hover:bg-purple-100' 
+                                                    : 'bg-indigo-50 group-hover:bg-indigo-100'
+                                            }`}>
+                                                <Mail className={`h-5 w-5 ${
+                                                    newsletter.theme === 'jurisprudence' 
+                                                        ? 'text-purple-600' 
+                                                        : 'text-indigo-600'
+                                                }`} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors text-lg mb-1">
+                                                    {newsletter.title}
+                                                </h3>
+                                                <div className="flex items-center space-x-2">
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium ${
+                                                        newsletter.theme === 'jurisprudence' 
+                                                            ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                                                            : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                                                    }`}>
+                                                        {newsletter.theme ? NEWSLETTER_THEMES[newsletter.theme as keyof typeof NEWSLETTER_THEMES] || newsletter.theme : NEWSLETTER_THEMES[newsletter.category]}
+                                                    </span>
+                                                    <span className="text-xs text-gray-400">•</span>
+                                                    <div className="flex items-center space-x-1 text-xs text-gray-500">
+                                                        <Clock className="h-3 w-3" />
+                                                        <span>{NEWSLETTER_FREQUENCIES[newsletter.frequency] || newsletter.frequency}</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div
-                                        className={`
-                                            inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-                                            ${
-                                                newsletter.is_user_subscribed
-                                                    ? "bg-green-50 text-green-700 border border-green-200"
-                                                    : "bg-gray-100 text-gray-600 border border-gray-200"
-                                            }
-                                        `}
-                                    >
-                                        {newsletter.is_user_subscribed ? (
-                                            <>
-                                                <CheckCircle2 className="h-3 w-3" />
-                                                <span>Abonné</span>
-                                            </>
-                                        ) : (
-                                            <>
+                                        <div
+                                            className={`
+                                                inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border
+                                                ${
+                                                    newsletter.is_user_subscribed
+                                                        ? "bg-green-50 text-green-700 border-green-200"
+                                                        : "bg-gray-50 text-gray-600 border-gray-200"
+                                                }
+                                            `}
+                                        >
+                                            {newsletter.is_user_subscribed ? (
+                                                <>
+                                                    <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
+                                                    <span>Abonné</span>
+                                                </>
+                                            ) : (
                                                 <span>Non abonné</span>
-                                            </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {newsletter.description && (
+                                        <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+                                            {newsletter.description}
+                                        </p>
+                                    )}
+
+                                    {/* Stats */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center space-x-3 text-xs text-gray-500">
+                                            {newsletter.edition_count !== undefined && (
+                                                <div className="flex items-center space-x-1">
+                                                    <Newspaper className="h-3 w-3" />
+                                                    <span>{newsletter.edition_count} édition{newsletter.edition_count > 1 ? 's' : ''}</span>
+                                                </div>
+                                            )}
+                                            {newsletter.last_published_at && (
+                                                <div className="flex items-center space-x-1">
+                                                    <Calendar className="h-3 w-3" />
+                                                    <span>{new Date(newsletter.last_published_at).toLocaleDateString("fr-FR", { 
+                                                        day: 'numeric', 
+                                                        month: 'short' 
+                                                    })}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Action buttons */}
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleToggleSubscription(newsletter.id, newsletter.is_user_subscribed || false)
+                                            }}
+                                            disabled={subscribing}
+                                            className={`
+                                                flex-1 px-3 py-2.5 text-sm rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed
+                                                ${
+                                                    newsletter.is_user_subscribed
+                                                        ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                                                        : "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700"
+                                                }
+                                            `}
+                                        >
+                                            {subscribing ? (
+                                                <>
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                                                    <span>Chargement...</span>
+                                                </>
+                                            ) : newsletter.is_user_subscribed ? (
+                                                <>
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                    <span>Abonné</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Bell className="h-4 w-4" />
+                                                    <span>S'abonner</span>
+                                                </>
+                                            )}
+                                        </button>
+                                        
+                                        {/* Generate button for jurisprudence */}
+                                        {newsletter.id === 'jurisprudence-immobiliere' && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleGenerateNewsletter(newsletter.id)
+                                                }}
+                                                disabled={generating}
+                                                className="px-3 py-2.5 text-sm rounded-xl font-medium transition-all bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                                title="Générer la newsletter"
+                                            >
+                                                {generating ? (
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                                                ) : (
+                                                    <RefreshCw className="h-4 w-4" />
+                                                )}
+                                            </button>
                                         )}
                                     </div>
                                 </div>
-
-                                {newsletter.description && (
-                                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                                        {newsletter.description}
-                                    </p>
-                                )}
-
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleToggleSubscription(newsletter.id, newsletter.is_user_subscribed || false)
-                                    }}
-                                    disabled={subscribing}
-                                    className={`
-                                        px-4 py-2 text-sm rounded-lg font-medium transition-all flex items-center space-x-2 w-full justify-center
-                                        ${
-                                            newsletter.is_user_subscribed
-                                                ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
-                                                : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow"
-                                        }
-                                        ${subscribing ? "opacity-50 cursor-not-allowed" : ""}
-                                    `}
-                                >
-                                    {subscribing ? (
-                                        <>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-                                            <span>Chargement...</span>
-                                        </>
-                                    ) : newsletter.is_user_subscribed ? (
-                                        <>
-                                            <CheckCircle2 className="h-4 w-4" />
-                                            <span>Abonné</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Bell className="h-4 w-4" />
-                                            <span>S'abonner</span>
-                                        </>
-                                    )}
-                                </button>
                             </div>
                         ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-16">
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
+                            <Mail className="h-10 w-10 text-gray-400" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-3">Aucune newsletter disponible</h3>
+                        <p className="text-gray-500 text-lg max-w-md mx-auto">
+                            Les newsletters seront bientôt disponibles. Revenez plus tard pour découvrir nos contenus.
+                        </p>
                     </div>
                 )}
             </div>

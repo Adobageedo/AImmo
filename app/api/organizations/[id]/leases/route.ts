@@ -108,6 +108,24 @@ export async function GET(
       );
     }
 
+    // Fetch documents for all leases
+    let documentsMap = new Map<string, any>();
+    if (leases && leases.length > 0) {
+      const leaseIds = leases.map(l => l.id);
+      const { data: documents } = await supabase
+        .from('lease_documents')
+        .select('id, file_name, file_type, storage_path, raw_text_path, extraction_status, uploaded_at, lease_id')
+        .in('lease_id', leaseIds);
+      
+      if (documents) {
+        documents.forEach(doc => {
+          if (doc.lease_id) {
+            documentsMap.set(doc.lease_id, doc);
+          }
+        });
+      }
+    }
+
     // Si includeRelationships, utiliser le relationshipService (logique directe pour leases)
     let leasesWithRelationships = leases;
     if (includeRelationships && leases && leases.length > 0) {
@@ -119,7 +137,7 @@ export async function GET(
           'lease'
         );
 
-        // Ajouter les relationships à chaque lease
+        // Ajouter les relationships et documents à chaque lease
         leasesWithRelationships = leases.map(lease => {
           const relationships = relationshipsMap.get(lease.id)?.relationships || {
             leases: [],
@@ -128,17 +146,28 @@ export async function GET(
             tenants: []
           };
           
+          const document = documentsMap.get(lease.id) || null;
           
           return {
             ...lease,
-            relationships
+            relationships,
+            document
           };
         });
 
       } catch (relError) {
-                // Fallback: retourner leases sans relationships
-        leasesWithRelationships = leases;
+        // Fallback: retourner leases avec documents seulement
+        leasesWithRelationships = leases.map(lease => ({
+          ...lease,
+          document: documentsMap.get(lease.id) || null
+        }));
       }
+    } else {
+      // Pas de relationships mais ajouter les documents
+      leasesWithRelationships = leases.map(lease => ({
+        ...lease,
+        document: documentsMap.get(lease.id) || null
+      }));
     }
     
     return NextResponse.json({

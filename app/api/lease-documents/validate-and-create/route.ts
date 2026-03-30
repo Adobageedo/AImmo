@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { fileStorageService } from '@/lib/services/file-storage.service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -16,10 +17,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get organization_id from the extraction
+    // Get organization_id and document_id from the extraction
     const { data: extraction, error: extractionError } = await supabase
       .from('lease_document_extractions')
-      .select('organization_id')
+      .select('organization_id, document_id')
       .eq('id', extraction_id)
       .single();
 
@@ -144,6 +145,16 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (leaseError) throw new Error(`Lease creation failed: ${leaseError.message}`);
+
+    // Link the source document to the newly created lease
+    if (extraction.document_id) {
+      try {
+        await fileStorageService.linkDocumentToLease(extraction.document_id, leaseData.id);
+        console.log(`✅ Document ${extraction.document_id} linked to lease ${leaseData.id}`);
+      } catch (linkErr) {
+        console.error('⚠️ Failed to link document to lease (continuing):', linkErr);
+      }
+    }
 
     return NextResponse.json({
       success: true,
