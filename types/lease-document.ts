@@ -8,8 +8,11 @@ export interface UploadedDocument {
   file_type: DocumentType;
   file_size: number;
   file_url: string;
+  storage_path: string | null;
+  raw_text_path: string | null;
   uploaded_at: string;
   organization_id: string;
+  lease_id?: string;
 }
 
 export interface ExtractedLeaseData {
@@ -124,13 +127,15 @@ export interface ValidateAndCreateLeaseResponse {
 
 export interface LeaseDocument {
   id: string;
-  lease_id: string;
+  lease_id?: string;
   document_id: string;
   file_name: string;
   file_type: DocumentType;
   file_url: string;
   file_size: number;
-  text_content?: string; // Texte extrait lors du parsing
+  storage_path: string | null;
+  raw_text_path: string | null;
+  text_content?: string; // Preview du texte extrait (2000 chars max, full text dans Storage)
   extraction_status: ExtractionStatus;
   extraction_data?: ExtractedLeaseData;
   extraction_error?: string;

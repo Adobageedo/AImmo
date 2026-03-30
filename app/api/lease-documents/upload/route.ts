@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
 import Fuse from 'fuse.js';
+import { fileStorageService } from '@/lib/services/file-storage.service';
 
 // Import pdf2json for server-side PDF parsing
 import PDFParser from 'pdf2json';
@@ -68,15 +69,103 @@ function getFileType(filename: string): 'pdf' | 'word' | 'image' {
   throw new Error(`Unsupported file type: ${ext}`);
 }
 
-async function extractText(buffer: Buffer, fileType: string): Promise<{ text: string; method: string }> {
-  let text = '';
-  let method = '';
-
+async function parseWithAI(file: File): Promise<ExtractedLeaseData> {
+  console.log('🤖 Starting AI parsing with Python API...');
+  
+  // First try Python API
   try {
+    console.log('📡 Calling Python API at http://localhost:8000/parse');
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('http://localhost:8000/parse', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        console.log('✅ Successfully parsed with Python API');
+        
+        // Create entity matches for the processing step
+        const entityMatches = {
+          property: {
+            type: 'property' as const,
+            status: 'new' as const,
+            confidence: result.data.confidence_score || 0.0,
+            extracted_data: {
+              address: result.data.property_address,
+              city: result.data.property_city,
+              postal_code: result.data.property_postal_code,
+              type: result.data.property_type,
+              surface: result.data.property_surface
+            },
+            suggested_action: 'create' as const
+          },
+          owner: {
+            type: 'owner' as const,
+            status: 'new' as const,
+            confidence: result.data.confidence_score || 0.0,
+            extracted_data: {
+              name: result.data.landlord_name,
+              address: result.data.landlord_address,
+              email: result.data.landlord_email,
+              phone: result.data.landlord_phone,
+              city: undefined,
+              postal_code: undefined
+            },
+            suggested_action: 'create' as const
+          },
+          tenant: {
+            type: 'tenant' as const,
+            status: 'new' as const,
+            confidence: result.data.confidence_score || 0.0,
+            extracted_data: {
+              name: result.data.tenant_name,
+              address: result.data.tenant_address,
+              email: result.data.tenant_email,
+              phone: result.data.tenant_phone,
+              city: undefined,
+              postal_code: undefined
+            },
+            suggested_action: 'create' as const
+          }
+        };
+
+        // Store entity matches for processing step
+        (global as any).mockEntityMatches = entityMatches;
+        
+        // Also include entity matches in extracted data as custom property
+        (result.data as any)._entity_matches = entityMatches;
+
+        return result.data as ExtractedLeaseData;
+      }
+    }
+    
+    console.log('⚠️ Python API failed, falling back to local parsing');
+  } catch (error) {
+    console.log('⚠️ Python API unavailable, falling back to local parsing:', error instanceof Error ? error.message : error);
+  }
+  
+  // Fallback to local parsing
+  console.log('🤖 Starting fallback AI parsing with local OpenAI...');
+  
+  // Extract text from file first
+  let text = '';
+  let method = 'unknown';
+  
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const fileType = file.name.endsWith('.pdf') ? 'pdf' : 'word';
+    
+    // Extract text based on file type
     if (fileType === 'pdf') {
       console.log('📄 Extracting text from PDF using pdf2json...');
       
-      // Use pdf2json directly (most reliable for server-side)
       try {
         const pdfParser = new PDFParser();
         
@@ -129,151 +218,52 @@ async function extractText(buffer: Buffer, fileType: string): Promise<{ text: st
         method = 'pdf2json';
       }
       
-      // If text is too short, PDF is likely scanned - skip GPT-4 Vision extraction for now
-      // and let the AI parsing handle it with whatever text we have
-      if (text.length < 100) {
-        console.log('⚠️ Text too short - PDF appears to be scanned or image-based');
-        console.log('💡 Skipping advanced extraction - will proceed with AI parsing of available text');
-        // Note: In production, you could implement:
-        // - OCR with Tesseract.js
-        // - GPT-4 Vision with page-by-page image conversion
-        // - External OCR services (Google Vision, AWS Textract, etc.)
-      }
-      
       console.log(`📝 Final extracted text: ${text.length} characters (method: ${method})`);
     } else if (fileType === 'word') {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
       method = 'word';
-    } else {
-      // Image OCR
-      console.log('🔍 Starting OCR on image...');
-      
-      // Preprocess image
-      const processedBuffer = await sharp(buffer)
-        .greyscale()
-        .normalize()
-        .sharpen()
-        .png()
-        .toBuffer();
-
-      const { createWorker } = require('tesseract.js');
-      const worker = await createWorker('fra+eng', 1, {
-        logger: (m: any) => {
-          if (m.status === 'recognizing text') {
-            console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
-          }
-        }
-      });
-
-      const { data: { text: ocrText } } = await worker.recognize(processedBuffer);
-      await worker.terminate();
-
-      text = ocrText;
-      method = 'ocr';
     }
-
-    // If text is too short, it's probably a scanned document
-    if (text.trim().length < 100 && (fileType === 'pdf' || fileType === 'word')) {
-      console.log(`⚠️ Text too short (${text.length} chars), might be scanned`);
-      // For now, we'll keep the extracted text
-      // In a real implementation, you'd convert PDF to images then OCR
-    }
-
-    return { text, method };
+    
+    console.log(`📝 Text extracted: ${text.length} characters (method: ${method})`);
   } catch (error) {
-    console.error('❌ Extraction error:', error);
-    throw new Error(`Failed to extract text: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('❌ Text extraction failed:', error);
+    text = '';
   }
-}
-
-async function parseWithAI(text: string): Promise<ExtractedLeaseData> {
-  console.log('🤖 Starting AI parsing...');
   
   // If no text extracted, return mock data for UI testing
   if (!text || text.trim().length === 0) {
     console.log('⚠️ No text available - returning mock data for UI testing');
     
     const mockData: ExtractedLeaseData = {
-      landlord_name: "Jean Dupont",
-      landlord_address: "123 Rue de la République, 75001 Paris",
-      landlord_email: "jean.dupont@email.com",
-      landlord_phone: "01 23 45 67 89",
-      tenant_name: "Marie Martin",
+      landlord_name: "Document scanné",
+      landlord_address: "Extraction automatique impossible",
+      landlord_email: undefined,
+      landlord_phone: undefined,
+      tenant_name: "Document scanné",
       tenant_company_name: undefined,
-      tenant_address: "456 Avenue des Champs-Élysées, 75008 Paris",
-      tenant_email: "marie.martin@email.com",
-      tenant_phone: "06 12 34 56 78",
-      property_address: "789 Boulevard Saint-Germain, 75006 Paris",
-      property_city: "Paris",
-      property_postal_code: "75006",
-      property_type: "appartement",
-      property_surface: 75.5,
-      lease_type: "residential",
-      start_date: "2024-01-01",
-      end_date: "2026-12-31",
-      duration_months: 36,
-      monthly_rent: 1500.00,
-      charges: 200.00,
-      deposit: 3000.00,
-      payment_day: 5,
-      indexation_clause: true,
-      special_clauses: ["Interdiction de sous-louer", "Garantie locative requise"],
+      tenant_address: "Extraction automatique impossible",
+      tenant_email: undefined,
+      tenant_phone: undefined,
+      property_address: "Document scanné",
+      property_city: undefined,
+      property_postal_code: undefined,
+      property_type: "inconnu",
+      property_surface: undefined,
+      lease_type: "inconnu",
+      start_date: undefined,
+      end_date: undefined,
+      duration_months: undefined,
+      monthly_rent: undefined,
+      charges: undefined,
+      deposit: undefined,
+      payment_day: undefined,
+      indexation_clause: undefined,
+      special_clauses: undefined,
       confidence_score: 0.0,
-      extraction_method: "mock",
-      raw_text: "Mock data - no text extracted from document"
+      extraction_method: "scanned_document",
+      raw_text: ''
     };
-    
-    // For mock data, also create mock entity matches
-    const mockEntityMatches = {
-      property: {
-        type: 'property' as const,
-        status: 'new' as const,
-        confidence: 0.0,
-        extracted_data: {
-          address: mockData.property_address,
-          city: mockData.property_city,
-          postal_code: mockData.property_postal_code,
-          type: mockData.property_type,
-          surface: mockData.property_surface
-        },
-        suggested_action: 'create' as const
-      },
-      owner: {
-        type: 'owner' as const,
-        status: 'new' as const,
-        confidence: 0.0,
-        extracted_data: {
-          name: mockData.landlord_name,
-          address: mockData.landlord_address,
-          email: mockData.landlord_email,
-          phone: mockData.landlord_phone,
-          city: undefined,
-          postal_code: undefined
-        },
-        suggested_action: 'create' as const
-      },
-      tenant: {
-        type: 'tenant' as const,
-        status: 'new' as const,
-        confidence: 0.0,
-        extracted_data: {
-          name: mockData.tenant_name,
-          address: mockData.tenant_address,
-          email: mockData.tenant_email,
-          phone: mockData.tenant_phone,
-          city: undefined,
-          postal_code: undefined
-        },
-        suggested_action: 'create' as const
-      }
-    };
-    
-    // Store mock entity matches for processing step
-    (global as any).mockEntityMatches = mockEntityMatches;
-    
-    // Also include entity matches in extracted data as custom property
-    (mockData as any)._entity_matches = mockEntityMatches;
     
     return mockData;
   }
@@ -312,7 +302,7 @@ Format JSON attendu:
 
 Document à analyser:
 ---
-${text.substring(0, 8000)}
+${text}
 ---
 
 Réponds UNIQUEMENT avec le JSON, sans texte additionnel.
@@ -367,13 +357,64 @@ Réponds UNIQUEMENT avec le JSON, sans texte additionnel.
     score += (optionalPresent / optionalFields.length) * 0.2;
 
     result.confidence_score = Math.round(score * 100) / 100;
+    result.extraction_method = method;
+    result.raw_text = text; // Store the full extracted text
+
+    // Create entity matches for the processing step
+    const entityMatches = {
+      property: {
+        type: 'property' as const,
+        status: 'new' as const,
+        confidence: result.confidence_score,
+        extracted_data: {
+          address: result.property_address,
+          city: result.property_city,
+          postal_code: result.property_postal_code,
+          type: result.property_type,
+          surface: result.property_surface
+        },
+        suggested_action: 'create' as const
+      },
+      owner: {
+        type: 'owner' as const,
+        status: 'new' as const,
+        confidence: result.confidence_score,
+        extracted_data: {
+          name: result.landlord_name,
+          address: result.landlord_address,
+          email: result.landlord_email,
+          phone: result.landlord_phone,
+          city: undefined,
+          postal_code: undefined
+        },
+        suggested_action: 'create' as const
+      },
+      tenant: {
+        type: 'tenant' as const,
+        status: 'new' as const,
+        confidence: result.confidence_score,
+        extracted_data: {
+          name: result.tenant_name,
+          address: result.tenant_address,
+          email: result.tenant_email,
+          phone: result.tenant_phone,
+          city: undefined,
+          postal_code: undefined
+        },
+        suggested_action: 'create' as const
+      }
+    };
+
+    // Store entity matches for processing step
+    (global as any).mockEntityMatches = entityMatches;
     
-    console.log(`✅ AI parsing completed - Confidence: ${result.confidence_score}`);
-    
+    // Also include entity matches in extracted data as custom property
+    (result as any)._entity_matches = entityMatches;
+
     return result;
   } catch (error) {
     console.error('❌ AI parsing error:', error);
-    throw new Error(`AI parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(`Failed to parse with AI: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -625,8 +666,19 @@ export async function POST(request: NextRequest) {
 
     console.log(`📄 File: ${file.name}, Type: ${fileType}, Size: ${file.size} bytes`);
 
-    // Skip storage upload for now - store metadata only
-    console.log('📝 Skipping storage upload, using metadata only');
+    // Ensure storage bucket exists
+    await fileStorageService.ensureBucketExists();
+
+    // Upload original file to Supabase Storage
+    console.log('� Uploading original file to Supabase Storage...');
+    const { storagePath } = await fileStorageService.uploadOriginal(
+      organizationId,
+      fileId,
+      file.name,
+      fileBuffer,
+      file.type
+    );
+    console.log(`✅ Original file stored at: ${storagePath}`);
 
     // Create document record
     const document = {
@@ -635,8 +687,9 @@ export async function POST(request: NextRequest) {
       file_name: file.name,
       file_type: fileType,
       file_size: file.size,
-      file_url: null, // No storage URL for now
-      extraction_status: 'pending', // Initial status
+      file_url: storagePath,
+      storage_path: storagePath,
+      extraction_status: 'pending',
       uploaded_at: new Date().toISOString()
     };
 
@@ -725,30 +778,48 @@ async function processExtraction(
 
     console.log(`🔄 Processing extraction ${extractionId} for document ${documentId}...`);
 
-    // Step 1: Extract text
-    const { text, method } = await extractText(fileBuffer, fileType);
-    console.log(`📝 Text extracted: ${text.length} characters (method: ${method})`);
-
-    // Step 2: Parse with AI
-    const extractedData = await parseWithAI(text);
-    extractedData.extraction_method = method;
-    extractedData.raw_text = text.substring(0, 1000);
+    // Step 1: Parse with AI using the original file to get both JSON and raw text
+    console.log('🤖 Starting AI parsing with original file...');
+    
+    // Create a File object from the buffer
+    const file = new File([new Uint8Array(fileBuffer)], `lease_document.${fileType === 'pdf' ? 'pdf' : 'docx'}`, {
+      type: fileType === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+    
+    const extractedData = await parseWithAI(file);
+    console.log("✅ [DEBUG] AI parsing result:", extractedData);
+    
+    // Step 2: Upload the extracted raw text to Supabase Storage
+    let rawTextPath: string | null = null;
+    if (extractedData.raw_text && extractedData.raw_text.length > 0) {
+      try {
+        const rawTextResult = await fileStorageService.uploadRawText(
+          organizationId,
+          documentId,
+          extractedData.raw_text
+        );
+        rawTextPath = rawTextResult.storagePath;
+        console.log(`📄 Full raw text uploaded to Storage: ${rawTextPath}`);
+      } catch (storageErr) {
+        console.error('⚠️ Failed to upload raw text to storage (continuing):', storageErr);
+      }
+    }
+    
+    // Store only a preview in the extraction record (full text is in Storage)
+    extractedData.raw_text = extractedData.raw_text ? extractedData.raw_text.substring(0, 500) : '';
 
     // Step 3: Match entities
     let entityMatches;
     
     if (extractedData.extraction_method === 'mock' && (global as any).mockEntityMatches) {
-      // Use mock entity matches for testing
       entityMatches = (global as any).mockEntityMatches;
     } else if ((extractedData as any)._entity_matches) {
-      // Use entity matches from extracted data
       entityMatches = (extractedData as any)._entity_matches;
     } else {
-      // Use real entity matching
       entityMatches = await matchEntities(extractedData, organizationId);
     }
 
-    // Update with results
+    // Update extraction record with results
     await supabase
       .from('lease_document_extractions')
       .update({
@@ -760,21 +831,23 @@ async function processExtraction(
       })
       .eq('id', extractionId);
 
-    // Save the complete extracted text to lease_documents table
+    // Update lease_documents with text preview + storage paths
+    const docUpdate: Record<string, unknown> = {
+      text_content: extractedData.raw_text ? extractedData.raw_text.substring(0, 2000) : '', // Preview only, full text in Storage
+      extraction_status: 'completed',
+      updated_at: new Date().toISOString(),
+    };
+    if (rawTextPath) {
+      docUpdate.raw_text_path = rawTextPath;
+    }
+
     const { error: textUpdateError } = await supabase
       .from('lease_documents')
-      .update({
-        text_content: text,
-        extraction_status: 'completed',
-        updated_at: new Date().toISOString()
-      })
+      .update(docUpdate)
       .eq('id', documentId);
 
     if (textUpdateError) {
-      console.error('❌ Error updating text_content:', textUpdateError);
-      // Continue anyway - extraction is complete, just text save failed
-    } else {
-      console.log(`✅ Text content saved to lease_documents (${text.length} characters)`);
+      console.error('❌ Error updating lease_documents:', textUpdateError);
     }
 
     console.log(`✅ Extraction ${extractionId} completed successfully`);

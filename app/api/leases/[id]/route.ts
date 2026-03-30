@@ -35,6 +35,13 @@ export async function GET(
       )
     }
 
+    // Fetch linked document
+    const { data: document } = await supabase
+      .from('lease_documents')
+      .select('id, file_name, file_type, storage_path, raw_text_path, extraction_status, uploaded_at, lease_id')
+      .eq('lease_id', id)
+      .single()
+
     // Si includeRelationships, utiliser le relationshipService
     if (includeRelationships) {
       try {
@@ -55,7 +62,8 @@ export async function GET(
           success: true,
           data: {
             ...lease,
-            relationships
+            relationships,
+            document: document || null
           }
         })
       } catch (relError) {
@@ -65,7 +73,10 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: lease
+      data: {
+        ...lease,
+        document: document || null
+      }
     })
 
   } catch (error) {

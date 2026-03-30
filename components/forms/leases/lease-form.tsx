@@ -411,9 +411,9 @@ export function LeaseForm({ initialData, onSuccess, onCancel }: LeaseFormProps) 
     // Store entity data for later creation
     setExtractedEntityData(entityData)
     
-    // Update lease links with AI suggestions
+    // Update lease links with AI suggestions (replace existing ones to prevent duplicates)
     if (suggestedLinks.length > 0) {
-      setLeaseLinks(prev => [...prev, ...suggestedLinks])
+      setLeaseLinks(suggestedLinks)
     }
   }
 
